@@ -86,7 +86,6 @@ class GeoCollection(ModelNormal):
         """
         return {
             'id': (str,),  # noqa: E501
-            'matching_property': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -96,7 +95,6 @@ class GeoCollection(ModelNormal):
 
     attribute_map = {
         'id': 'id',  # noqa: E501
-        'matching_property': 'matchingProperty',  # noqa: E501
     }
 
     read_only_vars = {
@@ -110,7 +108,7 @@ class GeoCollection(ModelNormal):
         """GeoCollection - a model defined in OpenAPI
 
         Args:
-            id (str):
+            id (str): Geo collection identifier.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -143,7 +141,6 @@ class GeoCollection(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            matching_property (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -200,7 +197,7 @@ class GeoCollection(ModelNormal):
         """GeoCollection - a model defined in OpenAPI
 
         Args:
-            id (str):
+            id (str): Geo collection identifier.
 
         Keyword Args:
             _check_type (bool): if True, values for parameters in openapi_types
@@ -233,7 +230,6 @@ class GeoCollection(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            matching_property (str): [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

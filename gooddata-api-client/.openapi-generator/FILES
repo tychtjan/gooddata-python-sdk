@@ -38,8 +38,10 @@ docs/AnalyticsCatalogCreatedBy.md
 docs/AnalyticsCatalogTags.md
 docs/AnalyticsCatalogUser.md
 docs/AnalyticsModelApi.md
+docs/AnomalyDetection.md
 docs/AnomalyDetectionRequest.md
 docs/AnomalyDetectionResult.md
+docs/AnomalyDetectionWrapper.md
 docs/ApiEntitlement.md
 docs/AppearanceApi.md
 docs/ArithmeticMeasure.md
@@ -194,6 +196,7 @@ docs/DeclarativeIdentityProviderIdentifier.md
 docs/DeclarativeJwk.md
 docs/DeclarativeJwkSpecification.md
 docs/DeclarativeLabel.md
+docs/DeclarativeLabelTranslation.md
 docs/DeclarativeLdm.md
 docs/DeclarativeMetric.md
 docs/DeclarativeModel.md
@@ -260,6 +263,9 @@ docs/EntitiesApi.md
 docs/EntitlementApi.md
 docs/EntitlementsRequest.md
 docs/EntityIdentifier.md
+docs/EntitySearchBody.md
+docs/EntitySearchPage.md
+docs/EntitySearchSort.md
 docs/ExecutionLinks.md
 docs/ExecutionResponse.md
 docs/ExecutionResult.md
@@ -392,6 +398,10 @@ docs/JsonApiAttributeOutRelationships.md
 docs/JsonApiAttributeOutRelationshipsAttributeHierarchies.md
 docs/JsonApiAttributeOutRelationshipsDefaultView.md
 docs/JsonApiAttributeOutWithLinks.md
+docs/JsonApiAttributePatch.md
+docs/JsonApiAttributePatchAttributes.md
+docs/JsonApiAttributePatchDocument.md
+docs/JsonApiAttributePatchRelationships.md
 docs/JsonApiAttributeToManyLinkage.md
 docs/JsonApiAttributeToOneLinkage.md
 docs/JsonApiAutomationIn.md
@@ -426,6 +436,7 @@ docs/JsonApiAutomationPatchDocument.md
 docs/JsonApiAutomationResultLinkage.md
 docs/JsonApiAutomationResultOut.md
 docs/JsonApiAutomationResultOutAttributes.md
+docs/JsonApiAutomationResultOutList.md
 docs/JsonApiAutomationResultOutRelationships.md
 docs/JsonApiAutomationResultOutRelationshipsAutomation.md
 docs/JsonApiAutomationResultOutWithLinks.md
@@ -519,6 +530,9 @@ docs/JsonApiDatasetOutRelationshipsAggregatedFacts.md
 docs/JsonApiDatasetOutRelationshipsFacts.md
 docs/JsonApiDatasetOutRelationshipsWorkspaceDataFilters.md
 docs/JsonApiDatasetOutWithLinks.md
+docs/JsonApiDatasetPatch.md
+docs/JsonApiDatasetPatchAttributes.md
+docs/JsonApiDatasetPatchDocument.md
 docs/JsonApiDatasetToManyLinkage.md
 docs/JsonApiDatasetToOneLinkage.md
 docs/JsonApiEntitlementOut.md
@@ -566,6 +580,8 @@ docs/JsonApiFactOutDocument.md
 docs/JsonApiFactOutList.md
 docs/JsonApiFactOutRelationships.md
 docs/JsonApiFactOutWithLinks.md
+docs/JsonApiFactPatch.md
+docs/JsonApiFactPatchDocument.md
 docs/JsonApiFactToManyLinkage.md
 docs/JsonApiFactToOneLinkage.md
 docs/JsonApiFilterContextIn.md
@@ -621,11 +637,15 @@ docs/JsonApiLabelLinkage.md
 docs/JsonApiLabelOut.md
 docs/JsonApiLabelOutAttributes.md
 docs/JsonApiLabelOutAttributesGeoAreaConfig.md
+docs/JsonApiLabelOutAttributesTranslationsInner.md
 docs/JsonApiLabelOutDocument.md
 docs/JsonApiLabelOutList.md
 docs/JsonApiLabelOutRelationships.md
 docs/JsonApiLabelOutRelationshipsAttribute.md
 docs/JsonApiLabelOutWithLinks.md
+docs/JsonApiLabelPatch.md
+docs/JsonApiLabelPatchAttributes.md
+docs/JsonApiLabelPatchDocument.md
 docs/JsonApiLabelToManyLinkage.md
 docs/JsonApiLabelToOneLinkage.md
 docs/JsonApiLlmEndpointIn.md
@@ -877,6 +897,8 @@ docs/MeasureItem.md
 docs/MeasureItemDefinition.md
 docs/MeasureResultHeader.md
 docs/MeasureValueFilter.md
+docs/MemoryItemCreatedByUsers.md
+docs/MemoryItemUser.md
 docs/MetadataSyncApi.md
 docs/Metric.md
 docs/MetricRecord.md
@@ -1189,8 +1211,10 @@ gooddata_api_client/model/alert_evaluation_row.py
 gooddata_api_client/model/analytics_catalog_created_by.py
 gooddata_api_client/model/analytics_catalog_tags.py
 gooddata_api_client/model/analytics_catalog_user.py
+gooddata_api_client/model/anomaly_detection.py
 gooddata_api_client/model/anomaly_detection_request.py
 gooddata_api_client/model/anomaly_detection_result.py
+gooddata_api_client/model/anomaly_detection_wrapper.py
 gooddata_api_client/model/api_entitlement.py
 gooddata_api_client/model/arithmetic_measure.py
 gooddata_api_client/model/arithmetic_measure_definition.py
@@ -1330,6 +1354,7 @@ gooddata_api_client/model/declarative_identity_provider_identifier.py
 gooddata_api_client/model/declarative_jwk.py
 gooddata_api_client/model/declarative_jwk_specification.py
 gooddata_api_client/model/declarative_label.py
+gooddata_api_client/model/declarative_label_translation.py
 gooddata_api_client/model/declarative_ldm.py
 gooddata_api_client/model/declarative_metric.py
 gooddata_api_client/model/declarative_model.py
@@ -1393,6 +1418,9 @@ gooddata_api_client/model/elements_request_depends_on_inner.py
 gooddata_api_client/model/elements_response.py
 gooddata_api_client/model/entitlements_request.py
 gooddata_api_client/model/entity_identifier.py
+gooddata_api_client/model/entity_search_body.py
+gooddata_api_client/model/entity_search_page.py
+gooddata_api_client/model/entity_search_sort.py
 gooddata_api_client/model/execution_links.py
 gooddata_api_client/model/execution_response.py
 gooddata_api_client/model/execution_result.py
@@ -1515,6 +1543,10 @@ gooddata_api_client/model/json_api_attribute_out_relationships.py
 gooddata_api_client/model/json_api_attribute_out_relationships_attribute_hierarchies.py
 gooddata_api_client/model/json_api_attribute_out_relationships_default_view.py
 gooddata_api_client/model/json_api_attribute_out_with_links.py
+gooddata_api_client/model/json_api_attribute_patch.py
+gooddata_api_client/model/json_api_attribute_patch_attributes.py
+gooddata_api_client/model/json_api_attribute_patch_document.py
+gooddata_api_client/model/json_api_attribute_patch_relationships.py
 gooddata_api_client/model/json_api_attribute_to_many_linkage.py
 gooddata_api_client/model/json_api_attribute_to_one_linkage.py
 gooddata_api_client/model/json_api_automation_in.py
@@ -1549,6 +1581,7 @@ gooddata_api_client/model/json_api_automation_patch_document.py
 gooddata_api_client/model/json_api_automation_result_linkage.py
 gooddata_api_client/model/json_api_automation_result_out.py
 gooddata_api_client/model/json_api_automation_result_out_attributes.py
+gooddata_api_client/model/json_api_automation_result_out_list.py
 gooddata_api_client/model/json_api_automation_result_out_relationships.py
 gooddata_api_client/model/json_api_automation_result_out_relationships_automation.py
 gooddata_api_client/model/json_api_automation_result_out_with_links.py
@@ -1642,6 +1675,9 @@ gooddata_api_client/model/json_api_dataset_out_relationships_aggregated_facts.py
 gooddata_api_client/model/json_api_dataset_out_relationships_facts.py
 gooddata_api_client/model/json_api_dataset_out_relationships_workspace_data_filters.py
 gooddata_api_client/model/json_api_dataset_out_with_links.py
+gooddata_api_client/model/json_api_dataset_patch.py
+gooddata_api_client/model/json_api_dataset_patch_attributes.py
+gooddata_api_client/model/json_api_dataset_patch_document.py
 gooddata_api_client/model/json_api_dataset_to_many_linkage.py
 gooddata_api_client/model/json_api_dataset_to_one_linkage.py
 gooddata_api_client/model/json_api_entitlement_out.py
@@ -1689,6 +1725,8 @@ gooddata_api_client/model/json_api_fact_out_document.py
 gooddata_api_client/model/json_api_fact_out_list.py
 gooddata_api_client/model/json_api_fact_out_relationships.py
 gooddata_api_client/model/json_api_fact_out_with_links.py
+gooddata_api_client/model/json_api_fact_patch.py
+gooddata_api_client/model/json_api_fact_patch_document.py
 gooddata_api_client/model/json_api_fact_to_many_linkage.py
 gooddata_api_client/model/json_api_fact_to_one_linkage.py
 gooddata_api_client/model/json_api_filter_context_in.py
@@ -1744,11 +1782,15 @@ gooddata_api_client/model/json_api_label_linkage.py
 gooddata_api_client/model/json_api_label_out.py
 gooddata_api_client/model/json_api_label_out_attributes.py
 gooddata_api_client/model/json_api_label_out_attributes_geo_area_config.py
+gooddata_api_client/model/json_api_label_out_attributes_translations_inner.py
 gooddata_api_client/model/json_api_label_out_document.py
 gooddata_api_client/model/json_api_label_out_list.py
 gooddata_api_client/model/json_api_label_out_relationships.py
 gooddata_api_client/model/json_api_label_out_relationships_attribute.py
 gooddata_api_client/model/json_api_label_out_with_links.py
+gooddata_api_client/model/json_api_label_patch.py
+gooddata_api_client/model/json_api_label_patch_attributes.py
+gooddata_api_client/model/json_api_label_patch_document.py
 gooddata_api_client/model/json_api_label_to_many_linkage.py
 gooddata_api_client/model/json_api_label_to_one_linkage.py
 gooddata_api_client/model/json_api_llm_endpoint_in.py
@@ -1995,6 +2037,8 @@ gooddata_api_client/model/measure_item.py
 gooddata_api_client/model/measure_item_definition.py
 gooddata_api_client/model/measure_result_header.py
 gooddata_api_client/model/measure_value_filter.py
+gooddata_api_client/model/memory_item_created_by_users.py
+gooddata_api_client/model/memory_item_user.py
 gooddata_api_client/model/metric.py
 gooddata_api_client/model/metric_record.py
 gooddata_api_client/model/metric_value_change.py

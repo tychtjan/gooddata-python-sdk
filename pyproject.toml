@@ -61,6 +61,8 @@ test = [
     # but included here for convenience when working on the full workspace
     "moto>=5.1.6",
     "orjson>=3.11.3",
+    # For upload_demo_layout.py (test setup script)
+    "psycopg2-binary>=2.9",
 ]
 release = [
     "tbump~=6.11.0",

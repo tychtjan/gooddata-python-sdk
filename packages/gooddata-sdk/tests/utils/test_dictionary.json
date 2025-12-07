@@ -203,8 +203,8 @@
       "permissions": [],
       "schema": "demo",
       "type": "POSTGRESQL",
-      "url": "jdbc:postgresql://localhost:5432/demo",
-      "username": "demouser"
+      "url": "jdbc:postgresql://postgres:5432/tiger?sslmode=prefer",
+      "username": "postgres"
     }
   ]
 }

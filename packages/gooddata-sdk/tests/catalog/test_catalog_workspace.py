@@ -667,11 +667,11 @@ def create_second_data_source(sdk: GoodDataSdk, ds_id: str) -> None:
         CatalogDataSourcePostgres(
             id=ds_id,
             name="Test2",
-            db_specific_attributes=PostgresAttributes(host="localhost", db_name="demo"),
+            db_specific_attributes=PostgresAttributes(host="postgres", db_name="tiger"),
             schema="demo",
             credentials=BasicCredentials(
-                username="demouser",
-                password="demopass",
+                username="postgres",
+                password="passw0rd",
             ),
             # SSL mode is a required parameter now for Postgres
             url_params=[("autosave", "false"), ("sslmode", "prefer")],

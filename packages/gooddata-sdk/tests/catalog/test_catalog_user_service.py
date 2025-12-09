@@ -111,6 +111,33 @@ def test_update_user(test_config):
         sdk.catalog_user.delete_user(user_id)
         sdk.catalog_user.create_or_update_user(user)
         assert len(sdk.catalog_user.list_users()) == 3
+        # Restore data source and workspace permissions that were cascade-deleted
+        # when demo2 was deleted
+        # Otherwise, the test would fail because the data source and workspace permissions would be missing.
+        # If these tests are run individually they work, and technically the cassets would be substituted here and no fail would happen.
+        _restore_demo2_permissions(sdk, test_config)
+
+
+def _restore_demo2_permissions(sdk: GoodDataSdk, test_config: dict) -> None:
+    """Restore demo2's data source and workspace permissions after user deletion/recreation."""
+    from gooddata_sdk.catalog.data_source.declarative_model.data_source import CatalogDeclarativeDataSources
+
+    # Restore data source permissions
+    expected_ds_path = _current_dir / "expected" / "declarative_data_sources.json"
+    with open(expected_ds_path) as f:
+        ds_data = json.load(f)
+    credentials_path = _current_dir / "load" / "data_source_credentials" / "data_sources_credentials.yaml"
+    data_sources = CatalogDeclarativeDataSources.from_dict(ds_data)
+    sdk.catalog_data_source.put_declarative_data_sources(data_sources, credentials_path)
+
+    # Restore workspace permissions
+    from gooddata_sdk.catalog.permission.declarative_model.permission import CatalogDeclarativeWorkspacePermissions
+
+    expected_ws_path = _current_dir / "expected" / "declarative_workspace_permissions.json"
+    with open(expected_ws_path) as f:
+        ws_data = json.load(f)
+    ws_permissions = CatalogDeclarativeWorkspacePermissions.from_dict(ws_data, camel_case=True)
+    sdk.catalog_permission.put_declarative_permissions(test_config["workspace"], ws_permissions)
 
 
 # ENTITY USER GROUPS
@@ -689,13 +716,22 @@ def _assert_users_user_groups_default(users_user_groups: CatalogDeclarativeUsers
 
 
 def _clear_users(sdk: GoodDataSdk) -> None:
+    # Keep demo2 because deleting it cascades to remove data source permissions
+    # that reference it, which breaks subsequent permission tests
     users = sdk.catalog_user.list_users()
     for user in users:
-        if user.id not in ["admin", "demo"]:
+        if user.id not in ["admin", "demo", "demo2"]:
             sdk.catalog_user.delete_user(user.id)
 
 
 def _clear_user_groups(sdk: GoodDataSdk) -> None:
+    # Keep demoGroup because deleting it cascades to remove data source permissions
+    # that reference it, which breaks subsequent permission tests
     sdk.catalog_user.put_declarative_user_groups(
-        CatalogDeclarativeUserGroups(user_groups=[CatalogDeclarativeUserGroup(id="adminGroup")])
+        CatalogDeclarativeUserGroups(
+            user_groups=[
+                CatalogDeclarativeUserGroup(id="adminGroup"),
+                CatalogDeclarativeUserGroup(id="demoGroup"),
+            ]
+        )
     )

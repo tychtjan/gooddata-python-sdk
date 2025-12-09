@@ -4,13 +4,61 @@
 # This replaces the old AIO approach with individual microservices matching gdc-nas architecture.
 # Uses ECR images only - no gdc-nas dependency required.
 #
-# Prerequisites:
-#   - AWS ECR login: aws ecr get-login-password | docker login --username AWS --password-stdin 020413372491.dkr.ecr.us-east-1.amazonaws.com
-#   - GoodData license key: export GDCN_LICENSE_KEY=<your_license_key>
+# ============================================================================
+# PREREQUISITES
+# ============================================================================
+# 1. AWS ECR login:
+#    aws ecr get-login-password | docker login --username AWS --password-stdin 020413372491.dkr.ecr.us-east-1.amazonaws.com
 #
-# Usage:
-#   GDCN_LICENSE_KEY=<key> docker compose up -d    # Start all services
-#   docker compose logs -f data-loader              # Watch data loading progress
+# 2. GoodData license key (get from GoodData team):
+#    export GDCN_LICENSE_KEY=<your_license_key>
+#
+# ============================================================================
+# WORKFLOW
+# ============================================================================
+# The services start in this order:
+#
+# 1. Infrastructure (postgres, redis, pulsar, dex, quiver, router)
+# 2. Core services (metadata-api, auth-service, calcique, etc.)
+# 3. Gateway services (api-gw, api-gateway)
+# 4. Bootstrap sequence:
+#    a) metadata-organization-bootstrap - Creates organization + admin user
+#    b) data-loader - Loads demo data into PostgreSQL (with --no-schema-versioning)
+#    c) create-ds - Registers data sources in metadata-api
+#    d) layout-uploader - Uploads workspace hierarchy, analytics model, users, permissions
+#
+# ============================================================================
+# NO-SCHEMA-VERSIONING (Critical for SDK tests)
+# ============================================================================
+# The data-loader uses --no-schema-versioning flag to ensure:
+# - Schema names are consistent (e.g., "demo" not "demo_abc123")
+# - Fixture names don't have hash suffixes
+# - VCR cassette tests produce reproducible results
+#
+# This flag is set in:
+# - data-loader service: ./data_load.py ... --no-schema-versioning
+# - create-ds service: ./create_data_sources.py ... --no-schema-versioning
+#
+# ============================================================================
+# USAGE
+# ============================================================================
+#   # Start all services:
+#   GDCN_LICENSE_KEY=<key> docker compose up -d
+#
+#   # Wait for bootstrap to complete:
+#   docker compose logs -f metadata-organization-bootstrap data-loader create-ds
+#
+#   # Check service status:
+#   docker compose ps
+#
+#   # Run SDK tests (after services are ready):
+#   make test
+#
+#   # Stop all services:
+#   docker compose down
+#
+#   # Full cleanup (remove volumes):
+#   docker compose down -v
 
 x-java-opts: &java-opts
   JAVA_OPTS: "${JAVA_OPTS:--Xmx128m --add-opens=java.base/sun.net=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED}"
@@ -148,7 +196,7 @@ services:
         condition: service_started
     environment:
       <<: *java-opts
-      JAVA_OPTS: "${JAVA_OPTS:--Xmx1G}"
+      JAVA_OPTS: "${JAVA_OPTS:--Xmx2G}"
       GDC_METADATA_ENCRYPTOR_KEYSET: *key-set
       GRPC_DATASOURCEMETADATA_HOST: sql-executor
       GRPC_DATASOURCEMETADATA_PORT: 6570
@@ -179,6 +227,7 @@ services:
       GDC_FEATURES_VALUES_ENABLE_ALERTING: "true"
       GDC_FEATURES_VALUES_ENABLE_SMTP: "true"
       GDC_FEATURES_VALUES_ENABLE_PRE_AGGREGATION_DATASETS: "true"
+      GDC_FEATURES_VALUES_ENABLE_DATA_LOCALIZATION: "true"
 
   auth-service:
     image: 020413372491.dkr.ecr.us-east-1.amazonaws.com/nas/auth-service:latest
@@ -196,8 +245,6 @@ services:
         condition: service_completed_successfully
     environment:
       <<: *java-opts
-      # Provide license key via environment variable (get from GoodData)
-      GDCN_LICENSE_KEY: "${GDCN_LICENSE_KEY}"
       GRPC_METADATA_HOST: metadata-api
       GRPC_METADATA_PORT: 6572
       PULSAR_ADMINURL: http://pulsar:8080
@@ -207,6 +254,10 @@ services:
       SPRING_PROFILES_ACTIVE: localDex
       GRPC_DEX_HOST: dex
       GRPC_DEX_PORT: 5557
+    # Mount license file (valid until 2026-09-11)
+    # The auth-service reads the license from /secret/license file
+    volumes:
+      - ./build:/secret:ro
 
   calcique:
     image: 020413372491.dkr.ecr.us-east-1.amazonaws.com/nas/calcique:latest
@@ -232,6 +283,7 @@ services:
       GRPC_DATASOURCE_PORT: 6572
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      GDC_FEATURES_VALUES_ENABLE_DATA_LOCALIZATION: "true"
     ports:
       - "${CALCIQUE_MANAGEMENT_EXPOSED_PORT-9012}:9012"
       - "${CALCIQUE_GRPC_EXPOSED_PORT-6577}:6577"
@@ -464,11 +516,16 @@ services:
       OTEL_SDK_DISABLED: "true"
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      COROUTINES_DEBUG_METRICS_ENABLED: "true
+      COROUTINES_DEBUG_METRICS_ENABLED: "true"
+      GDC_FEATURES_VALUES_ENABLE_COMPOSITE_GRAIN: "true"
+      GDC_FEATURES_VALUES_ENABLE_USER_MANAGEMENT: "true"
       GDC_FEATURES_VALUES_ENABLE_SCHEDULING: "true"
       GDC_FEATURES_VALUES_ENABLE_ALERTING: "true"
       GDC_FEATURES_VALUES_ENABLE_SMTP: "true"
       GDC_FEATURES_VALUES_ENABLE_PRE_AGGREGATION_DATASETS: "true"
+      GDC_FEATURES_VALUES_ENABLE_DATA_LOCALIZATION: "true"
+      GDC_FEATURES_VALUES_ENABLE_RAW_EXPORTS: "true"
+      GDC_FEATURES_VALUES_ENABLE_FLEXIBLE_DASHBOARD_LAYOUT: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -559,6 +616,28 @@ services:
   ## Export Services (for SDK export tests)
   ## ============================================
 
+  tabular-exporter:
+    image: 020413372491.dkr.ecr.us-east-1.amazonaws.com/nas/tabular-exporter:latest
+    tty: true
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.settimeout(2); exit(0 if s.connect_ex(('localhost', 6789)) == 0 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      afm-exec-api:
+        condition: service_started
+      metadata-api:
+        condition: service_started
+    ports:
+      - "${TABULAR_EXPORTER_GRPC_EXPOSED_PORT-6789}:6789"
+      - "${TABULAR_EXPORTER_MANAGEMENT_EXPOSED_PORT-9131}:9131"
+    environment:
+      AFM_EXEC_API_URL: "http://afm-exec-api:9000"
+      MD_API_URL: "http://metadata-api:9007"
+      TABULAR_EXPORTER_LOGLEVEL: INFO
+
   export-controller:
     image: 020413372491.dkr.ecr.us-east-1.amazonaws.com/nas/export-controller:latest
     tty: true
@@ -575,6 +654,8 @@ services:
         condition: service_healthy
       result-cache:
         condition: service_started
+      tabular-exporter:
+        condition: service_healthy
     ports:
       - "${EXPORT_CONTROLLER_API_EXPOSED_PORT-6580}:6580"
       - "${EXPORT_CONTROLLER_MANAGEMENT_EXPOSED_PORT-6581}:6581"
@@ -703,6 +784,7 @@ services:
     volumes:
       - quiver-data:/data/
       - ./quiver-ds:/data/file-storage:Z:ro
+      - ./scripts/quiver/quiver.conf.toml:/etc/quiver/quiver.conf.toml:ro
     environment:
       QUIVER_LISTEN_FLIGHT_HOST: 0.0.0.0
       QUIVER_METRICS_HOST: 0.0.0.0
@@ -721,6 +803,8 @@ services:
       PYTHONMALLOC: malloc
       ACERO_ALIGNMENT_HANDLING: 'ignore'
     command:
+      - --config
+      - /etc/quiver/quiver.conf.toml
       - --init-cluster-config
       - start
       - --single-node
@@ -902,7 +986,9 @@ services:
 
         echo "Bootstrap completed!"
 
-  # Data loader - populates PG with demo data
+  # Data loader - populates PostgreSQL with demo data
+  # Uses --no-schema-versioning to create schemas without hash suffixes (e.g., "demo" not "demo_abc123")
+  # This is CRITICAL for Python SDK tests which expect consistent fixture names
   data-loader:
     image: 020413372491.dkr.ecr.us-east-1.amazonaws.com/nas/data-loader:master
     pull_policy: always
@@ -912,11 +998,22 @@ services:
         condition: service_healthy
     environment:
       DOWNLOAD_DATA_SETS: "yes"
-      SKIP_INIT_DS: "yes"
-    # Load demo workspace without schema versioning (no hash suffix)
-    entrypoint: ["./entrypoint.sh", "demo", "pg_local_docker"]
+    # Call data_load.py directly with --no-schema-versioning flag
+    # This ensures schema names don't have hash suffixes (demo instead of demo_<hash>)
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -ex
+        # Download fresh data if needed
+        if [ -n "$$DOWNLOAD_DATA_SETS" ]; then
+          ./data_load.py -w demo -d pg_local_docker --skip-load --skip-store-versions || true
+        fi
+        # Load data with --no-schema-versioning (critical for SDK tests)
+        ./data_load.py -w demo -d pg_local_docker --skip-download --skip-store-versions --no-schema-versioning --debug
+        echo "Data loading completed with --no-schema-versioning!"
 
   # Create data sources in metadata-api
+  # This registers the data source so GoodData services can query the demo data
   create-ds:
     image: 020413372491.dkr.ecr.us-east-1.amazonaws.com/nas/data-loader:master
     pull_policy: missing
@@ -924,10 +1021,58 @@ services:
     depends_on:
       metadata-organization-bootstrap:
         condition: service_completed_successfully
+      data-loader:
+        condition: service_completed_successfully
     environment:
       API_HOST: "localhost"
+      API_ENDPOINT: "http://api-gw:9201"
       TIGER_API_TOKEN: YWRtaW46Ym9vdHN0cmFwOmFkbWluMTIz
-    entrypoint: ["./create_ds.sh"]
+      DATABASES: "pg_local_docker"
+      WORKSPACES: "demo"
+    # Use --no-schema-versioning for consistent data source schema names
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -ex
+        ./create_data_sources.py -w demo -d pg_local_docker -e http://api-gw:9201 --version-file /data_load/versions.json --no-schema-versioning --debug
+        echo "Data sources created with --no-schema-versioning!"
+
+  # Layout uploader - uploads workspace hierarchy, analytics model, users, and permissions
+  # This replaces the old upload_demo_layout.py script and runs automatically
+  # CRITICAL: This step is required for SDK tests to work properly
+  layout-uploader:
+    image: 020413372491.dkr.ecr.us-east-1.amazonaws.com/pullthrough/docker.io/library/python:3.14-alpine
+    tty: true
+    depends_on:
+      create-ds:
+        condition: service_completed_successfully
+    environment:
+      HOST: "http://api-gw:9201"
+      TOKEN: "YWRtaW46Ym9vdHN0cmFwOmFkbWluMTIz"
+      HEADER_HOST: "localhost"
+      FIXTURES_DIR: "/app/fixtures"
+    volumes:
+      - ./packages/tests-support/fixtures:/app/fixtures:ro
+      - ./packages/tests-support/upload_demo_layout.py:/app/upload_demo_layout.py:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -ex
+        # Install required packages
+        pip install --quiet requests pyyaml
+
+        # Wait for api-gw to be ready
+        echo "Waiting for api-gw to be ready..."
+        until wget -q --spider http://api-gw:9203/health/readiness 2>/dev/null; do
+          sleep 2
+        done
+        echo "api-gw is ready!"
+
+        # Run the layout uploader
+        cd /app
+        python upload_demo_layout.py
+
+        echo "Layout upload completed successfully!"
 
   ## ============================================
   ## FDW Service (optional - for gooddata-fdw tests)

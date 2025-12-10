@@ -203,6 +203,7 @@ services:
       GRPC_LICENSE_HOST: auth-service
       GRPC_LICENSE_PORT: 6573
       GRPC_DEX_HOST: dex
+      GRPC_DEX_PORT: 5557
       GRPC_CLIENT_FEDERATION_ENABLED: "false"
       PULSAR_ADMINURL: http://pulsar:8080
       PULSAR_PRODUCERS_MODEL_UPDATE_TOPIC: gooddata/nas/metadata.model
@@ -228,6 +229,7 @@ services:
       GDC_FEATURES_VALUES_ENABLE_SMTP: "true"
       GDC_FEATURES_VALUES_ENABLE_PRE_AGGREGATION_DATASETS: "true"
       GDC_FEATURES_VALUES_ENABLE_DATA_LOCALIZATION: "true"
+      GDC_FEATURES_VALUES_ENABLE_SNOWFLAKE_KEY_PAIR_AUTHENTICATION: "true"
 
   auth-service:
     image: 020413372491.dkr.ecr.us-east-1.amazonaws.com/nas/auth-service:latest
@@ -432,6 +434,7 @@ services:
       GRPC_DATASOURCEMETADATA_PORT: 6570
       GRPC_LICENSE_HOST: auth-service
       GRPC_LICENSE_PORT: 6573
+      GDC_FEATURES_VALUES_ENABLE_SNOWFLAKE_KEY_PAIR_AUTHENTICATION: "true"
 
   ## ============================================
   ## Gateway Services
@@ -526,6 +529,7 @@ services:
       GDC_FEATURES_VALUES_ENABLE_DATA_LOCALIZATION: "true"
       GDC_FEATURES_VALUES_ENABLE_RAW_EXPORTS: "true"
       GDC_FEATURES_VALUES_ENABLE_FLEXIBLE_DASHBOARD_LAYOUT: "true"
+      GDC_FEATURES_VALUES_ENABLE_SNOWFLAKE_KEY_PAIR_AUTHENTICATION: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -715,7 +719,7 @@ services:
       GDC_FEATURES_VALUES_ENABLE_NEW_SCHEDULED_EXPORT: "true"
       GDC_FEATURES_VALUES_ENABLE_NEW_PDF_TABULAR_EXPORT: "true"
     volumes:
-      - ./export-controller:/tmp/exports:Z
+      - ./packages/gooddata-sdk/tests/export:/tmp/exports:Z
 
   ## ============================================
   ## Supplemental Services

@@ -97,14 +97,14 @@ def update_layout():
     wait_platform_up()
 
     # Enable feature flags required for SDK tests (user management, scheduling, etc.)
+    # IMPORTANT: Use PATCH instead of PUT to avoid overwriting the identityProvider relationship
+    # PUT would overwrite the entire organization entity, removing the identity provider link
     print("Enabling feature flags on organization...", flush=True)
     org_update = {
         "data": {
             "id": "default",
             "type": "organization",
             "attributes": {
-                "name": "Default Organization",
-                "hostname": "localhost",
                 "earlyAccessValues": [
                     "enableUserManagement",
                     "enableScheduling",
@@ -117,7 +117,7 @@ def update_layout():
             },
         }
     }
-    rest_op_jsonapi("put", f"api/{api_version}/entities/admin/organizations/default", org_update)
+    rest_op_jsonapi("patch", f"api/{api_version}/entities/admin/organizations/default", org_update)
 
     print("Uploading userGroups", flush=True)
     rest_op_default("put", f"api/{api_version}/layout/userGroups", user_groups)

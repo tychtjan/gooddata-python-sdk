@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import attrs
+import pytest
 from gooddata_sdk import (
     CatalogDatasetWorkspaceDataFilterIdentifier,
     CatalogDeclarativeAnalytics,
@@ -29,7 +30,7 @@ from gooddata_sdk.utils import recreate_directory
 from tests_support.compare_utils import deep_eq
 from tests_support.vcrpy_utils import get_vcr
 
-from tests.catalog.test_catalog_workspace import _refresh_workspaces
+from tests.catalog.utils import _refresh_workspaces
 
 gd_vcr = get_vcr()
 
@@ -59,6 +60,7 @@ def test_catalog_list_facts(test_config):
     assert len(facts_list) == 4
 
 
+@pytest.mark.order(1)
 @gd_vcr.use_cassette(str(_fixtures_dir / "demo_catalog_list_aggregated_facts.yaml"))
 def test_catalog_list_aggregated_facts(test_config):
     sdk = GoodDataSdk.create(host_=test_config["host"], token_=test_config["token"])
@@ -152,6 +154,7 @@ def test_load_and_modify_ds_and_put_declarative_ldm(test_config):
         _refresh_workspaces(sdk)
 
 
+@pytest.mark.order(2)
 @gd_vcr.use_cassette(str(_fixtures_dir / "demo_load_ldm_and_modify_tables_columns_case.yaml"))
 def test_load_ldm_and_modify_tables_columns_case(test_config):
     sdk = GoodDataSdk.create(host_=test_config["host"], token_=test_config["token"])
@@ -306,6 +309,7 @@ def test_get_declarative_ldm(test_config):
     assert deep_eq(data, ldm_o.to_api().to_dict(camel_case=True))
 
 
+@pytest.mark.order(3)
 @gd_vcr.use_cassette(str(_fixtures_dir / "demo_catalog.yaml"))
 def test_catalog_load(test_config):
     sdk = GoodDataSdk.create(host_=test_config["host"], token_=test_config["token"])

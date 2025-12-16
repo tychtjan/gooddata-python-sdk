@@ -113,6 +113,7 @@ def update_layout():
                     "enableCompositeGrain",
                     "enableRawExports",
                     "enableFlexibleDashboardLayout",
+                    "enablePreAggregationDatasets",
                 ],
             },
         }

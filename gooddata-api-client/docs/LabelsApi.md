@@ -223,19 +223,12 @@ with gooddata_api_client.ApiClient() as api_client:
     object_id = "objectId_example" # str | 
     json_api_label_patch_document = JsonApiLabelPatchDocument(
         data=JsonApiLabelPatch(
-            attributes=JsonApiLabelPatchAttributes(
+            attributes=JsonApiAttributePatchAttributes(
                 description="description_example",
-                locale="locale_example",
                 tags=[
                     "tags_example",
                 ],
                 title="title_example",
-                translations=[
-                    JsonApiLabelOutAttributesTranslationsInner(
-                        locale="locale_example",
-                        source_column="source_column_example",
-                    ),
-                ],
             ),
             id="id1",
             type="label",

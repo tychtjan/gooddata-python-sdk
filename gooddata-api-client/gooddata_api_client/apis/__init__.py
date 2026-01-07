@@ -6,7 +6,7 @@
 # raise a `RecursionError`.
 # In order to avoid this, import only the API that you directly need like:
 #
-#   from gooddata_api_client.api.ai_api import AIApi
+#   from gooddata_api_client.api.aac_analytics_model_api import AACAnalyticsModelApi
 #
 # or import this package, but before doing it, use:
 #
@@ -14,6 +14,8 @@
 #   sys.setrecursionlimit(n)
 
 # Import APIs into API package:
+from gooddata_api_client.api.aac_analytics_model_api import AACAnalyticsModelApi
+from gooddata_api_client.api.aac_logical_data_model_api import AACLogicalDataModelApi
 from gooddata_api_client.api.ai_api import AIApi
 from gooddata_api_client.api.api_tokens_api import APITokensApi
 from gooddata_api_client.api.analytics_model_api import AnalyticsModelApi
@@ -47,6 +49,7 @@ from gooddata_api_client.api.ldm_declarative_apis_api import LDMDeclarativeAPIsA
 from gooddata_api_client.api.llm_endpoints_api import LLMEndpointsApi
 from gooddata_api_client.api.labels_api import LabelsApi
 from gooddata_api_client.api.manage_permissions_api import ManagePermissionsApi
+from gooddata_api_client.api.metadata_check_api import MetadataCheckApi
 from gooddata_api_client.api.metadata_sync_api import MetadataSyncApi
 from gooddata_api_client.api.metrics_api import MetricsApi
 from gooddata_api_client.api.notification_channels_api import NotificationChannelsApi
@@ -78,6 +81,7 @@ from gooddata_api_client.api.visualization_object_api import VisualizationObject
 from gooddata_api_client.api.workspaces_declarative_apis_api import WorkspacesDeclarativeAPIsApi
 from gooddata_api_client.api.workspaces_entity_apis_api import WorkspacesEntityAPIsApi
 from gooddata_api_client.api.workspaces_settings_api import WorkspacesSettingsApi
+from gooddata_api_client.api.aac_api import AacApi
 from gooddata_api_client.api.actions_api import ActionsApi
 from gooddata_api_client.api.automation_organization_view_controller_api import AutomationOrganizationViewControllerApi
 from gooddata_api_client.api.entities_api import EntitiesApi

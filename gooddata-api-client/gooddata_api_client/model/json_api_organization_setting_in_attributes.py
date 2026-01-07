@@ -61,6 +61,7 @@ class JsonApiOrganizationSettingInAttributes(ModelNormal):
             'ACTIVE_THEME': "ACTIVE_THEME",
             'ACTIVE_COLOR_PALETTE': "ACTIVE_COLOR_PALETTE",
             'ACTIVE_LLM_ENDPOINT': "ACTIVE_LLM_ENDPOINT",
+            'ACTIVE_CALENDARS': "ACTIVE_CALENDARS",
             'WHITE_LABELING': "WHITE_LABELING",
             'LOCALE': "LOCALE",
             'METADATA_LOCALE': "METADATA_LOCALE",

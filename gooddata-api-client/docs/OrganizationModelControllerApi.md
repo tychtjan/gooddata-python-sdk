@@ -276,6 +276,7 @@ with gooddata_api_client.ApiClient() as api_client:
     json_api_data_source_in_document = JsonApiDataSourceInDocument(
         data=JsonApiDataSourceIn(
             attributes=JsonApiDataSourceInAttributes(
+                alternative_data_source_id="pg_local_docker-demo2",
                 cache_strategy="ALWAYS",
                 client_id="client_id_example",
                 client_secret="client_secret_example",
@@ -1228,7 +1229,7 @@ with gooddata_api_client.ApiClient() as api_client:
         "parent",
     ] # [str] | Array of included collections or individual relationships. Includes are separated by commas (e.g. include=entity1s,entity2s). Collection include represents the inclusion of every relationship between this entity and the given collection. Relationship include represents the inclusion of the particular relationships only. If single parameter \"ALL\" is present, all possible includes are used (include=ALL).  __WARNING:__ Individual include types (collection, relationship or ALL) cannot be combined together. (optional)
     meta_include = [
-        "metaInclude=config,permissions,hierarchy,dataModelDatasets,all",
+        "metaInclude=permissions,config,hierarchy,dataModelDatasets,all",
     ] # [str] | Include Meta objects. (optional)
 
     # example passing only required values which don't have defaults set
@@ -3545,7 +3546,7 @@ with gooddata_api_client.ApiClient() as api_client:
         "sort_example",
     ] # [str] | Sorting criteria in the format: property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported. (optional)
     meta_include = [
-        "metaInclude=config,permissions,hierarchy,dataModelDatasets,page,all",
+        "metaInclude=permissions,config,hierarchy,dataModelDatasets,page,all",
     ] # [str] | Include Meta objects. (optional)
 
     # example passing only required values which don't have defaults set
@@ -4869,7 +4870,7 @@ with gooddata_api_client.ApiClient() as api_client:
         "parent",
     ] # [str] | Array of included collections or individual relationships. Includes are separated by commas (e.g. include=entity1s,entity2s). Collection include represents the inclusion of every relationship between this entity and the given collection. Relationship include represents the inclusion of the particular relationships only. If single parameter \"ALL\" is present, all possible includes are used (include=ALL).  __WARNING:__ Individual include types (collection, relationship or ALL) cannot be combined together. (optional)
     meta_include = [
-        "metaInclude=config,permissions,hierarchy,dataModelDatasets,all",
+        "metaInclude=permissions,config,hierarchy,dataModelDatasets,all",
     ] # [str] | Include Meta objects. (optional)
 
     # example passing only required values which don't have defaults set
@@ -5133,6 +5134,7 @@ with gooddata_api_client.ApiClient() as api_client:
     json_api_data_source_patch_document = JsonApiDataSourcePatchDocument(
         data=JsonApiDataSourcePatch(
             attributes=JsonApiDataSourcePatchAttributes(
+                alternative_data_source_id="pg_local_docker-demo2",
                 cache_strategy="ALWAYS",
                 client_id="client_id_example",
                 client_secret="client_secret_example",
@@ -6446,6 +6448,7 @@ with gooddata_api_client.ApiClient() as api_client:
     json_api_data_source_in_document = JsonApiDataSourceInDocument(
         data=JsonApiDataSourceIn(
             attributes=JsonApiDataSourceInAttributes(
+                alternative_data_source_id="pg_local_docker-demo2",
                 cache_strategy="ALWAYS",
                 client_id="client_id_example",
                 client_secret="client_secret_example",

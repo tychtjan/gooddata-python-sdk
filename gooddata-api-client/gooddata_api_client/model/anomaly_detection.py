@@ -31,7 +31,9 @@ from gooddata_api_client.exceptions import ApiAttributeError
 
 
 def lazy_import():
+    from gooddata_api_client.model.afm_object_identifier_dataset import AfmObjectIdentifierDataset
     from gooddata_api_client.model.local_identifier import LocalIdentifier
+    globals()['AfmObjectIdentifierDataset'] = AfmObjectIdentifierDataset
     globals()['LocalIdentifier'] = LocalIdentifier
 
 
@@ -101,6 +103,7 @@ class AnomalyDetection(ModelNormal):
         """
         lazy_import()
         return {
+            'dataset': (AfmObjectIdentifierDataset,),  # noqa: E501
             'granularity': (str,),  # noqa: E501
             'measure': (LocalIdentifier,),  # noqa: E501
             'sensitivity': (str,),  # noqa: E501
@@ -112,6 +115,7 @@ class AnomalyDetection(ModelNormal):
 
 
     attribute_map = {
+        'dataset': 'dataset',  # noqa: E501
         'granularity': 'granularity',  # noqa: E501
         'measure': 'measure',  # noqa: E501
         'sensitivity': 'sensitivity',  # noqa: E501
@@ -124,14 +128,16 @@ class AnomalyDetection(ModelNormal):
 
     @classmethod
     @convert_js_args_to_python_args
-    def _from_openapi_data(cls, granularity, measure, *args, **kwargs):  # noqa: E501
+    def _from_openapi_data(cls, dataset, granularity, measure, *args, **kwargs):  # noqa: E501
         """AnomalyDetection - a model defined in OpenAPI
 
         Args:
+            dataset (AfmObjectIdentifierDataset):
             granularity (str): Date granularity for anomaly detection. Only time-based granularities are supported (HOUR, DAY, WEEK, MONTH, QUARTER, YEAR).
             measure (LocalIdentifier):
 
         Keyword Args:
+            sensitivity (str): Sensitivity level for anomaly detection. defaults to "MEDIUM", must be one of ["LOW", "MEDIUM", "HIGH", ]  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -162,9 +168,9 @@ class AnomalyDetection(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            sensitivity (str): Sensitivity level for anomaly detection. [optional] if omitted the server will use the default value of "MEDIUM"  # noqa: E501
         """
 
+        sensitivity = kwargs.get('sensitivity', "MEDIUM")
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', True)
         _path_to_item = kwargs.pop('_path_to_item', ())
@@ -194,8 +200,10 @@ class AnomalyDetection(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.dataset = dataset
         self.granularity = granularity
         self.measure = measure
+        self.sensitivity = sensitivity
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \
@@ -216,14 +224,16 @@ class AnomalyDetection(ModelNormal):
     ])
 
     @convert_js_args_to_python_args
-    def __init__(self, granularity, measure, *args, **kwargs):  # noqa: E501
+    def __init__(self, dataset, granularity, measure, *args, **kwargs):  # noqa: E501
         """AnomalyDetection - a model defined in OpenAPI
 
         Args:
+            dataset (AfmObjectIdentifierDataset):
             granularity (str): Date granularity for anomaly detection. Only time-based granularities are supported (HOUR, DAY, WEEK, MONTH, QUARTER, YEAR).
             measure (LocalIdentifier):
 
         Keyword Args:
+            sensitivity (str): Sensitivity level for anomaly detection. defaults to "MEDIUM", must be one of ["LOW", "MEDIUM", "HIGH", ]  # noqa: E501
             _check_type (bool): if True, values for parameters in openapi_types
                                 will be type checked and a TypeError will be
                                 raised if the wrong type is input.
@@ -254,9 +264,9 @@ class AnomalyDetection(ModelNormal):
                                 Animal class but this time we won't travel
                                 through its discriminator because we passed in
                                 _visited_composed_classes = (Animal,)
-            sensitivity (str): Sensitivity level for anomaly detection. [optional] if omitted the server will use the default value of "MEDIUM"  # noqa: E501
         """
 
+        sensitivity = kwargs.get('sensitivity', "MEDIUM")
         _check_type = kwargs.pop('_check_type', True)
         _spec_property_naming = kwargs.pop('_spec_property_naming', False)
         _path_to_item = kwargs.pop('_path_to_item', ())
@@ -284,8 +294,10 @@ class AnomalyDetection(ModelNormal):
         self._configuration = _configuration
         self._visited_composed_classes = _visited_composed_classes + (self.__class__,)
 
+        self.dataset = dataset
         self.granularity = granularity
         self.measure = measure
+        self.sensitivity = sensitivity
         for var_name, var_value in kwargs.items():
             if var_name not in self.attribute_map and \
                         self._configuration is not None and \

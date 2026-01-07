@@ -96,6 +96,1393 @@
         ],
         "type": "object"
       },
+      "AacAnalyticsModel": {
+        "description": "AAC analytics model representation compatible with Analytics-as-Code YAML format.",
+        "properties": {
+          "attribute_hierarchies": {
+            "description": "An array of attribute hierarchies.",
+            "items": {
+              "$ref": "#/components/schemas/AacAttributeHierarchy"
+            },
+            "type": "array"
+          },
+          "dashboards": {
+            "description": "An array of dashboards.",
+            "items": {
+              "$ref": "#/components/schemas/AacDashboard"
+            },
+            "type": "array"
+          },
+          "metrics": {
+            "description": "An array of metrics.",
+            "items": {
+              "$ref": "#/components/schemas/AacMetric"
+            },
+            "type": "array"
+          },
+          "plugins": {
+            "description": "An array of dashboard plugins.",
+            "items": {
+              "$ref": "#/components/schemas/AacPlugin"
+            },
+            "type": "array"
+          },
+          "visualizations": {
+            "description": "An array of visualizations.",
+            "items": {
+              "$ref": "#/components/schemas/AacVisualization"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "AacAttributeHierarchy": {
+        "description": "AAC attribute hierarchy definition.",
+        "properties": {
+          "attributes": {
+            "description": "Ordered list of attribute identifiers (first is top level).",
+            "example": [
+              "attribute/country",
+              "attribute/state",
+              "attribute/city"
+            ],
+            "items": {
+              "description": "Ordered list of attribute identifiers (first is top level).",
+              "example": "[\"attribute/country\",\"attribute/state\",\"attribute/city\"]",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": {
+            "description": "Attribute hierarchy description.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique identifier of the attribute hierarchy.",
+            "example": "geo-hierarchy",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Metadata tags.",
+            "items": {
+              "description": "Metadata tags.",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "description": "Human readable title.",
+            "example": "Geographic Hierarchy",
+            "type": "string"
+          },
+          "type": {
+            "description": "Attribute hierarchy type discriminator.",
+            "example": "attribute_hierarchy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "AacBucketItem": {
+        "description": "Attribute bucket (for repeater).",
+        "properties": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonNode"
+            },
+            "type": "object",
+            "writeOnly": true
+          },
+          "alias": {
+            "description": "Alias.",
+            "type": "string"
+          },
+          "compute_ratio": {
+            "description": "Compute ratio.",
+            "type": "boolean"
+          },
+          "display_as": {
+            "description": "Display as label.",
+            "type": "string"
+          },
+          "format": {
+            "description": "Format override.",
+            "type": "string"
+          },
+          "local_id": {
+            "description": "Local identifier.",
+            "type": "string"
+          },
+          "maql": {
+            "description": "Inline MAQL expression.",
+            "type": "string"
+          },
+          "show_all_values": {
+            "description": "Show all values.",
+            "type": "boolean"
+          },
+          "title": {
+            "description": "Title override.",
+            "type": "string"
+          },
+          "using": {
+            "description": "Reference to attribute/label/metric/fact.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AacDashboard": {
+        "description": "AAC dashboard definition.",
+        "properties": {
+          "active_tab_id": {
+            "description": "Active tab ID for tabbed dashboards.",
+            "type": "string"
+          },
+          "cross_filtering": {
+            "description": "Whether cross filtering is enabled.",
+            "type": "boolean"
+          },
+          "description": {
+            "description": "Dashboard description.",
+            "type": "string"
+          },
+          "enable_section_headers": {
+            "description": "Whether section headers are enabled.",
+            "type": "boolean"
+          },
+          "filter_views": {
+            "description": "Whether filter views are enabled.",
+            "type": "boolean"
+          },
+          "filters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AacDashboardFilter"
+            },
+            "description": "Dashboard filters.",
+            "type": "object"
+          },
+          "id": {
+            "description": "Unique identifier of the dashboard.",
+            "example": "sales-overview",
+            "type": "string"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/AacDashboardPermissions"
+          },
+          "plugins": {
+            "description": "Dashboard plugins.",
+            "items": {
+              "$ref": "#/components/schemas/AacDashboardPluginLink"
+            },
+            "type": "array"
+          },
+          "sections": {
+            "description": "Dashboard sections (for non-tabbed dashboards).",
+            "items": {
+              "$ref": "#/components/schemas/AacSection"
+            },
+            "type": "array"
+          },
+          "tabs": {
+            "description": "Dashboard tabs (for tabbed dashboards).",
+            "items": {
+              "$ref": "#/components/schemas/AacTab"
+            },
+            "type": "array"
+          },
+          "tags": {
+            "description": "Metadata tags.",
+            "items": {
+              "description": "Metadata tags.",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "description": "Human readable title.",
+            "example": "Sales Overview",
+            "type": "string"
+          },
+          "type": {
+            "description": "Dashboard type discriminator.",
+            "example": "dashboard",
+            "type": "string"
+          },
+          "user_filters_reset": {
+            "description": "Whether user can reset custom filters.",
+            "type": "boolean"
+          },
+          "user_filters_save": {
+            "description": "Whether user filter settings are stored.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "AacDashboardFilter": {
+        "description": "Tab-specific filters.",
+        "properties": {
+          "date": {
+            "description": "Date dataset reference.",
+            "type": "string"
+          },
+          "display_as": {
+            "description": "Display as label.",
+            "type": "string"
+          },
+          "from": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "granularity": {
+            "description": "Date granularity.",
+            "type": "string"
+          },
+          "metric_filters": {
+            "description": "Metric filters for validation.",
+            "items": {
+              "description": "Metric filters for validation.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "mode": {
+            "description": "Filter mode.",
+            "example": "active",
+            "type": "string"
+          },
+          "multiselect": {
+            "description": "Whether multiselect is enabled.",
+            "type": "boolean"
+          },
+          "parents": {
+            "description": "Parent filter references.",
+            "items": {
+              "$ref": "#/components/schemas/JsonNode"
+            },
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/AacFilterState"
+          },
+          "title": {
+            "description": "Filter title.",
+            "type": "string"
+          },
+          "to": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "type": {
+            "description": "Filter type.",
+            "example": "attribute_filter",
+            "type": "string"
+          },
+          "using": {
+            "description": "Attribute or label to filter by.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "AacDashboardPermissions": {
+        "description": "Dashboard permissions.",
+        "properties": {
+          "edit": {
+            "$ref": "#/components/schemas/AacPermission"
+          },
+          "share": {
+            "$ref": "#/components/schemas/AacPermission"
+          },
+          "view": {
+            "$ref": "#/components/schemas/AacPermission"
+          }
+        },
+        "type": "object"
+      },
+      "AacDashboardPluginLink": {
+        "description": "Dashboard plugins.",
+        "properties": {
+          "id": {
+            "description": "Plugin ID.",
+            "type": "string"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/JsonNode"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "AacDataset": {
+        "description": "AAC dataset definition.",
+        "properties": {
+          "data_source": {
+            "description": "Data source ID.",
+            "example": "my-postgres",
+            "type": "string"
+          },
+          "description": {
+            "description": "Dataset description.",
+            "type": "string"
+          },
+          "fields": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AacField"
+            },
+            "description": "Dataset fields (attributes, facts, aggregated facts).",
+            "type": "object"
+          },
+          "id": {
+            "description": "Unique identifier of the dataset.",
+            "example": "customers",
+            "type": "string"
+          },
+          "precedence": {
+            "description": "Precedence value for aggregate awareness.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "primary_key": {
+            "description": "Primary key column(s).",
+            "items": {
+              "description": "Primary key column(s).",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "references": {
+            "description": "References to other datasets.",
+            "items": {
+              "$ref": "#/components/schemas/AacReference"
+            },
+            "type": "array"
+          },
+          "sql": {
+            "description": "SQL statement defining this dataset.",
+            "type": "string"
+          },
+          "table_path": {
+            "description": "Table path in the data source.",
+            "example": "public/customers",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Metadata tags.",
+            "items": {
+              "description": "Metadata tags.",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "description": "Human readable title.",
+            "example": "Customers",
+            "type": "string"
+          },
+          "type": {
+            "description": "Dataset type discriminator.",
+            "example": "dataset",
+            "type": "string"
+          },
+          "workspace_data_filters": {
+            "description": "Workspace data filters.",
+            "items": {
+              "$ref": "#/components/schemas/AacWorkspaceDataFilter"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "AacDateDataset": {
+        "description": "AAC date dataset definition.",
+        "properties": {
+          "description": {
+            "description": "Date dataset description.",
+            "type": "string"
+          },
+          "granularities": {
+            "description": "List of granularities.",
+            "items": {
+              "description": "List of granularities.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "description": "Unique identifier of the date dataset.",
+            "example": "date",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Metadata tags.",
+            "items": {
+              "description": "Metadata tags.",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "description": "Human readable title.",
+            "example": "Date",
+            "type": "string"
+          },
+          "title_base": {
+            "description": "Title base for formatting.",
+            "type": "string"
+          },
+          "title_pattern": {
+            "description": "Title pattern for formatting.",
+            "type": "string"
+          },
+          "type": {
+            "description": "Dataset type discriminator.",
+            "example": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "AacField": {
+        "description": "AAC field definition (attribute, fact, or aggregated_fact).",
+        "properties": {
+          "aggregated_as": {
+            "description": "Aggregation method.",
+            "example": "SUM",
+            "type": "string"
+          },
+          "assigned_to": {
+            "description": "Source fact ID for aggregated fact.",
+            "type": "string"
+          },
+          "data_type": {
+            "description": "Data type of the column.",
+            "enum": [
+              "INT",
+              "STRING",
+              "DATE",
+              "NUMERIC",
+              "TIMESTAMP",
+              "TIMESTAMP_TZ",
+              "BOOLEAN"
+            ],
+            "example": "STRING",
+            "type": "string"
+          },
+          "default_view": {
+            "description": "Default view label ID.",
+            "type": "string"
+          },
+          "description": {
+            "description": "Field description.",
+            "type": "string"
+          },
+          "is_hidden": {
+            "description": "Deprecated. Use showInAiResults instead.",
+            "type": "boolean"
+          },
+          "labels": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AacLabel"
+            },
+            "description": "Attribute labels.",
+            "type": "object"
+          },
+          "locale": {
+            "description": "Locale for sorting.",
+            "type": "string"
+          },
+          "show_in_ai_results": {
+            "description": "Whether to show in AI results.",
+            "type": "boolean"
+          },
+          "sort_column": {
+            "description": "Sort column name.",
+            "type": "string"
+          },
+          "sort_direction": {
+            "description": "Sort direction.",
+            "enum": [
+              "ASC",
+              "DESC"
+            ],
+            "example": "ASC",
+            "type": "string"
+          },
+          "source_column": {
+            "description": "Source column in the physical database.",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Metadata tags.",
+            "items": {
+              "description": "Metadata tags.",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "description": "Human readable title.",
+            "type": "string"
+          },
+          "type": {
+            "description": "Field type.",
+            "example": "attribute",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "AacFilterState": {
+        "description": "Filter state.",
+        "properties": {
+          "exclude": {
+            "description": "Excluded values.",
+            "items": {
+              "description": "Excluded values.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "include": {
+            "description": "Included values.",
+            "items": {
+              "description": "Included values.",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "AacGeoAreaConfig": {
+        "description": "GEO area configuration.",
+        "properties": {
+          "collection": {
+            "$ref": "#/components/schemas/AacGeoCollection"
+          }
+        },
+        "required": [
+          "collection"
+        ],
+        "type": "object"
+      },
+      "AacGeoCollection": {
+        "description": "GEO collection configuration.",
+        "properties": {
+          "id": {
+            "description": "Collection identifier.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "AacLabel": {
+        "description": "AAC label definition.",
+        "properties": {
+          "data_type": {
+            "description": "Data type of the column.",
+            "enum": [
+              "INT",
+              "STRING",
+              "DATE",
+              "NUMERIC",
+              "TIMESTAMP",
+              "TIMESTAMP_TZ",
+              "BOOLEAN"
+            ],
+            "type": "string"
+          },
+          "description": {
+            "description": "Label description.",
+            "type": "string"
+          },
+          "geo_area_config": {
+            "$ref": "#/components/schemas/AacGeoAreaConfig"
+          },
+          "is_hidden": {
+            "description": "Deprecated. Use showInAiResults instead.",
+            "type": "boolean"
+          },
+          "locale": {
+            "description": "Locale for sorting.",
+            "type": "string"
+          },
+          "show_in_ai_results": {
+            "description": "Whether to show in AI results.",
+            "type": "boolean"
+          },
+          "source_column": {
+            "description": "Source column name.",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Metadata tags.",
+            "items": {
+              "description": "Metadata tags.",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "description": "Human readable title.",
+            "type": "string"
+          },
+          "translations": {
+            "description": "Localized source columns.",
+            "items": {
+              "$ref": "#/components/schemas/AacLabelTranslation"
+            },
+            "type": "array"
+          },
+          "value_type": {
+            "description": "Value type.",
+            "example": "TEXT",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AacLabelTranslation": {
+        "description": "Localized source columns.",
+        "properties": {
+          "locale": {
+            "description": "Locale identifier.",
+            "type": "string"
+          },
+          "source_column": {
+            "description": "Source column for translation.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "locale",
+          "source_column"
+        ],
+        "type": "object"
+      },
+      "AacLogicalModel": {
+        "description": "AAC logical data model representation compatible with Analytics-as-Code YAML format.",
+        "properties": {
+          "datasets": {
+            "description": "An array of datasets.",
+            "items": {
+              "$ref": "#/components/schemas/AacDataset"
+            },
+            "type": "array"
+          },
+          "date_datasets": {
+            "description": "An array of date datasets.",
+            "items": {
+              "$ref": "#/components/schemas/AacDateDataset"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "AacMetric": {
+        "description": "AAC metric definition.",
+        "properties": {
+          "description": {
+            "description": "Metric description.",
+            "type": "string"
+          },
+          "format": {
+            "description": "Default format for metric values.",
+            "example": "#,##0.00",
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique identifier of the metric.",
+            "example": "total-sales",
+            "type": "string"
+          },
+          "is_hidden": {
+            "description": "Deprecated. Use showInAiResults instead.",
+            "type": "boolean"
+          },
+          "maql": {
+            "description": "MAQL expression defining the metric.",
+            "example": "SELECT SUM({fact/amount})",
+            "type": "string"
+          },
+          "show_in_ai_results": {
+            "description": "Whether to show in AI results.",
+            "type": "boolean"
+          },
+          "tags": {
+            "description": "Metadata tags.",
+            "items": {
+              "description": "Metadata tags.",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "description": "Human readable title.",
+            "example": "Total Sales",
+            "type": "string"
+          },
+          "type": {
+            "description": "Metric type discriminator.",
+            "example": "metric",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "maql",
+          "type"
+        ],
+        "type": "object"
+      },
+      "AacPermission": {
+        "description": "SHARE permission.",
+        "properties": {
+          "all": {
+            "description": "Grant to all users.",
+            "type": "boolean"
+          },
+          "user_groups": {
+            "description": "List of user group IDs.",
+            "items": {
+              "description": "List of user group IDs.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "users": {
+            "description": "List of user IDs.",
+            "items": {
+              "description": "List of user IDs.",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "AacPlugin": {
+        "description": "AAC dashboard plugin definition.",
+        "properties": {
+          "description": {
+            "description": "Plugin description.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique identifier of the plugin.",
+            "example": "my-plugin",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Metadata tags.",
+            "items": {
+              "description": "Metadata tags.",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "description": "Human readable title.",
+            "example": "My Plugin",
+            "type": "string"
+          },
+          "type": {
+            "description": "Plugin type discriminator.",
+            "example": "plugin",
+            "type": "string"
+          },
+          "url": {
+            "description": "URL of the plugin.",
+            "example": "https://example.com/plugin.js",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "url"
+        ],
+        "type": "object"
+      },
+      "AacQuery": {
+        "description": "Query definition.",
+        "properties": {
+          "attributes": {
+            "description": "Query attributes.",
+            "items": {
+              "$ref": "#/components/schemas/AacQueryAttribute"
+            },
+            "type": "array"
+          },
+          "filters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AacQueryFilter"
+            },
+            "description": "Query filters.",
+            "type": "object"
+          },
+          "metrics": {
+            "description": "Query metrics.",
+            "items": {
+              "$ref": "#/components/schemas/AacQueryMetric"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "AacQueryAttribute": {
+        "description": "Query attributes.",
+        "properties": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonNode"
+            },
+            "type": "object",
+            "writeOnly": true
+          },
+          "display_as": {
+            "description": "Display as label.",
+            "type": "string"
+          },
+          "local_id": {
+            "description": "Local identifier.",
+            "type": "string"
+          },
+          "show_all_values": {
+            "description": "Show all values.",
+            "type": "boolean"
+          },
+          "using": {
+            "description": "Attribute or label reference.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AacQueryFilter": {
+        "description": "Query filters.",
+        "properties": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonNode"
+            },
+            "type": "object",
+            "writeOnly": true
+          },
+          "condition": {
+            "description": "Condition for metric value filter.",
+            "type": "string"
+          },
+          "from": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "granularity": {
+            "description": "Date granularity.",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/AacFilterState"
+          },
+          "to": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "type": {
+            "description": "Filter type.",
+            "type": "string"
+          },
+          "using": {
+            "description": "Reference to attribute/label/date.",
+            "type": "string"
+          },
+          "value": {
+            "description": "Value for metric value filter.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "AacQueryMetric": {
+        "description": "Query metrics.",
+        "properties": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonNode"
+            },
+            "type": "object",
+            "writeOnly": true
+          },
+          "compute_ratio": {
+            "description": "Compute ratio.",
+            "type": "boolean"
+          },
+          "format": {
+            "description": "Format override.",
+            "type": "string"
+          },
+          "local_id": {
+            "description": "Local identifier.",
+            "type": "string"
+          },
+          "maql": {
+            "description": "Inline MAQL expression.",
+            "type": "string"
+          },
+          "title": {
+            "description": "Title override.",
+            "type": "string"
+          },
+          "using": {
+            "description": "Metric reference or inline definition.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AacReference": {
+        "description": "AAC reference to another dataset.",
+        "properties": {
+          "dataset": {
+            "description": "Target dataset ID.",
+            "example": "orders",
+            "type": "string"
+          },
+          "multi_directional": {
+            "description": "Whether the reference is multi-directional.",
+            "type": "boolean"
+          },
+          "sources": {
+            "description": "Source columns for the reference.",
+            "items": {
+              "$ref": "#/components/schemas/AacReferenceSource"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "dataset",
+          "sources"
+        ],
+        "type": "object"
+      },
+      "AacReferenceSource": {
+        "description": "Source columns for the reference.",
+        "properties": {
+          "data_type": {
+            "description": "Data type of the column.",
+            "enum": [
+              "INT",
+              "STRING",
+              "DATE",
+              "NUMERIC",
+              "TIMESTAMP",
+              "TIMESTAMP_TZ",
+              "BOOLEAN"
+            ],
+            "type": "string"
+          },
+          "source_column": {
+            "description": "Source column name.",
+            "type": "string"
+          },
+          "target": {
+            "description": "Target in the referenced dataset.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_column"
+        ],
+        "type": "object"
+      },
+      "AacSection": {
+        "description": "Sections within the tab.",
+        "properties": {
+          "description": {
+            "description": "Section description.",
+            "type": "string"
+          },
+          "header": {
+            "description": "Whether section header is visible.",
+            "type": "boolean"
+          },
+          "title": {
+            "description": "Section title.",
+            "type": "string"
+          },
+          "widgets": {
+            "description": "Widgets in the section.",
+            "items": {
+              "$ref": "#/components/schemas/AacWidget"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "AacTab": {
+        "description": "Dashboard tabs (for tabbed dashboards).",
+        "properties": {
+          "filters": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AacDashboardFilter"
+            },
+            "description": "Tab-specific filters.",
+            "type": "object"
+          },
+          "id": {
+            "description": "Unique identifier of the tab.",
+            "type": "string"
+          },
+          "sections": {
+            "description": "Sections within the tab.",
+            "items": {
+              "$ref": "#/components/schemas/AacSection"
+            },
+            "type": "array"
+          },
+          "title": {
+            "description": "Display title for the tab.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "type": "object"
+      },
+      "AacVisualization": {
+        "description": "AAC visualization definition.",
+        "properties": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonNode"
+            },
+            "type": "object",
+            "writeOnly": true
+          },
+          "attribute": {
+            "description": "Attribute bucket (for repeater).",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "color": {
+            "description": "Color bucket.",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "columns": {
+            "description": "Columns bucket (for tables).",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "config": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "description": {
+            "description": "Visualization description.",
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique identifier of the visualization.",
+            "example": "sales-by-region",
+            "type": "string"
+          },
+          "is_hidden": {
+            "description": "Deprecated. Use showInAiResults instead.",
+            "type": "boolean"
+          },
+          "location": {
+            "description": "Location bucket (for geo charts).",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "metrics": {
+            "description": "Metrics bucket.",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "primary_measures": {
+            "description": "Primary measures bucket.",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "query": {
+            "$ref": "#/components/schemas/AacQuery"
+          },
+          "rows": {
+            "description": "Rows bucket (for tables).",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "secondary_measures": {
+            "description": "Secondary measures bucket.",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "segment_by": {
+            "description": "Segment by attributes bucket.",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "show_in_ai_results": {
+            "description": "Whether to show in AI results.",
+            "type": "boolean"
+          },
+          "size": {
+            "description": "Size bucket.",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "stack": {
+            "description": "Stack bucket.",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "tags": {
+            "description": "Metadata tags.",
+            "items": {
+              "description": "Metadata tags.",
+              "type": "string"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "title": {
+            "description": "Human readable title.",
+            "example": "Sales by Region",
+            "type": "string"
+          },
+          "trend": {
+            "description": "Trend bucket.",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          },
+          "type": {
+            "description": "Visualization type.",
+            "enum": [
+              "table",
+              "bar_chart",
+              "column_chart",
+              "line_chart",
+              "area_chart",
+              "scatter_chart",
+              "bubble_chart",
+              "pie_chart",
+              "donut_chart",
+              "treemap_chart",
+              "pyramid_chart",
+              "funnel_chart",
+              "heatmap_chart",
+              "bullet_chart",
+              "waterfall_chart",
+              "dependency_wheel_chart",
+              "sankey_chart",
+              "headline_chart",
+              "combo_chart",
+              "geo_chart",
+              "geo_area_chart",
+              "repeater_chart"
+            ],
+            "example": "bar_chart",
+            "type": "string"
+          },
+          "view_by": {
+            "description": "View by attributes bucket.",
+            "items": {
+              "$ref": "#/components/schemas/AacBucketItem"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "AacWidget": {
+        "description": "Widgets in the section.",
+        "properties": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonNode"
+            },
+            "type": "object",
+            "writeOnly": true
+          },
+          "content": {
+            "description": "Rich text content.",
+            "type": "string"
+          },
+          "date": {
+            "description": "Date dataset for filtering.",
+            "type": "string"
+          },
+          "description": {
+            "description": "Widget description override.",
+            "type": "string"
+          },
+          "drill_down": {
+            "$ref": "#/components/schemas/JsonNode"
+          },
+          "ignore_dashboard_filters": {
+            "description": "Whether widget ignores dashboard filters.",
+            "items": {
+              "description": "Whether widget ignores dashboard filters.",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "metric": {
+            "description": "Inline metric reference.",
+            "type": "string"
+          },
+          "sections": {
+            "description": "Nested sections for layout widgets.",
+            "items": {
+              "$ref": "#/components/schemas/AacSection"
+            },
+            "type": "array"
+          },
+          "size": {
+            "$ref": "#/components/schemas/AacWidgetSize"
+          },
+          "title": {
+            "description": "Widget title override.",
+            "type": "string"
+          },
+          "type": {
+            "description": "Widget type.",
+            "example": "visualization",
+            "type": "string"
+          },
+          "visualization": {
+            "description": "Visualization ID reference.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AacWidgetSize": {
+        "description": "Widget size.",
+        "properties": {
+          "height": {
+            "description": "Height in grid rows.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "height_as_ratio": {
+            "description": "Height definition mode.",
+            "type": "boolean"
+          },
+          "width": {
+            "description": "Width in grid columns.",
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "AacWorkspaceDataFilter": {
+        "description": "Workspace data filters.",
+        "properties": {
+          "data_type": {
+            "description": "Data type of the column.",
+            "enum": [
+              "INT",
+              "STRING",
+              "DATE",
+              "NUMERIC",
+              "TIMESTAMP",
+              "TIMESTAMP_TZ",
+              "BOOLEAN"
+            ],
+            "type": "string"
+          },
+          "filter_id": {
+            "description": "Filter identifier.",
+            "type": "string"
+          },
+          "source_column": {
+            "description": "Source column name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data_type",
+          "filter_id",
+          "source_column"
+        ],
+        "type": "object"
+      },
       "AbsoluteDateFilter": {
         "description": "A datetime filter specifying exact from and to values.",
         "properties": {
@@ -141,6 +1528,9 @@
           },
           {
             "$ref": "#/components/schemas/RangeMeasureValueFilter"
+          },
+          {
+            "$ref": "#/components/schemas/CompoundMeasureValueFilter"
           },
           {
             "$ref": "#/components/schemas/RankingFilter"
@@ -599,7 +1989,7 @@
             "type": "array"
           },
           "filters": {
-            "description": "Various filter types to filter execution result. For anomaly detection, exactly one date filter (RelativeDateFilter or AbsoluteDateFilter) is required.",
+            "description": "Various filter types to filter execution result. For anomaly detection, exactly one dataset is specified in the condition. The AFM may contain multiple date filters for different datasets, but only the date filter matching the dataset from the condition is used for anomaly detection.",
             "items": {
               "$ref": "#/components/schemas/FilterDefinition"
             },
@@ -798,6 +2188,9 @@
       },
       "AnomalyDetection": {
         "properties": {
+          "dataset": {
+            "$ref": "#/components/schemas/AfmObjectIdentifierDataset"
+          },
           "granularity": {
             "description": "Date granularity for anomaly detection. Only time-based granularities are supported (HOUR, DAY, WEEK, MONTH, QUARTER, YEAR).",
             "enum": [
@@ -825,8 +2218,10 @@
           }
         },
         "required": [
+          "dataset",
           "granularity",
-          "measure"
+          "measure",
+          "sensitivity"
         ],
         "type": "object"
       },
@@ -2296,6 +3691,40 @@
         ],
         "type": "object"
       },
+      "ComparisonCondition": {
+        "description": "Condition that compares the metric value to a given constant value using a comparison operator.",
+        "properties": {
+          "comparison": {
+            "properties": {
+              "operator": {
+                "enum": [
+                  "GREATER_THAN",
+                  "GREATER_THAN_OR_EQUAL_TO",
+                  "LESS_THAN",
+                  "LESS_THAN_OR_EQUAL_TO",
+                  "EQUAL_TO",
+                  "NOT_EQUAL_TO"
+                ],
+                "example": "GREATER_THAN",
+                "type": "string"
+              },
+              "value": {
+                "example": 100,
+                "type": "number"
+              }
+            },
+            "required": [
+              "operator",
+              "value"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "comparison"
+        ],
+        "type": "object"
+      },
       "ComparisonMeasureValueFilter": {
         "description": "Filter the result by comparing specified metric to given constant value, using given comparison operator.",
         "properties": {
@@ -2360,6 +3789,52 @@
         },
         "required": [
           "comparison"
+        ],
+        "type": "object"
+      },
+      "CompoundMeasureValueFilter": {
+        "description": "Filter the result by applying multiple comparison and/or range conditions combined with OR logic. If conditions list is empty, no filtering is applied (all rows are returned).",
+        "properties": {
+          "compoundMeasureValueFilter": {
+            "properties": {
+              "applyOnResult": {
+                "type": "boolean"
+              },
+              "conditions": {
+                "description": "List of conditions to apply. Conditions are combined with OR logic. Each condition can be either a comparison (e.g., > 100) or a range (e.g., BETWEEN 10 AND 50). If empty, no filtering is applied and all rows are returned.",
+                "items": {
+                  "$ref": "#/components/schemas/MeasureValueCondition"
+                },
+                "type": "array"
+              },
+              "dimensionality": {
+                "description": "References to the attributes to be used when filtering.",
+                "items": {
+                  "$ref": "#/components/schemas/AfmIdentifier"
+                },
+                "type": "array"
+              },
+              "localIdentifier": {
+                "type": "string"
+              },
+              "measure": {
+                "$ref": "#/components/schemas/AfmIdentifier"
+              },
+              "treatNullValuesAs": {
+                "description": "A value that will be substituted for null values in the metric for the comparisons.",
+                "example": 0,
+                "type": "number"
+              }
+            },
+            "required": [
+              "conditions",
+              "measure"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "compoundMeasureValueFilter"
         ],
         "type": "object"
       },
@@ -4108,6 +5583,13 @@
       "DeclarativeDataSource": {
         "description": "A data source and its properties.",
         "properties": {
+          "alternativeDataSourceId": {
+            "description": "Alternative data source ID. It is a weak reference meaning data source does not have to exist. All the entities (e.g. tables) from the data source must be available also in the alternative data source. It must be present in the same organization as the data source.",
+            "example": "pg_local_docker-demo2",
+            "nullable": true,
+            "pattern": "^(?!\\.)[.A-Za-z0-9_-]{1,255}$",
+            "type": "string"
+          },
           "authenticationType": {
             "description": "Type of authentication used to connect to the database.",
             "enum": [
@@ -4824,6 +6306,8 @@
         "properties": {
           "customClaimMapping": {
             "additionalProperties": {
+              "description": "Map of custom claim overrides. To be used when your Idp does not provide default claims (sub, email, name, given_name, family_name, urn.gooddata.user_groups [optional]). Define the key pair for the claim you wish to override, where the key is the default name of the attribute and the value is your custom name for the given attribute.",
+              "maxLength": 10000,
               "type": "string"
             },
             "description": "Map of custom claim overrides. To be used when your Idp does not provide default claims (sub, email, name, given_name, family_name, urn.gooddata.user_groups [optional]). Define the key pair for the claim you wish to override, where the key is the default name of the attribute and the value is your custom name for the given attribute.",
@@ -5666,6 +7150,7 @@
               "ACTIVE_THEME",
               "ACTIVE_COLOR_PALETTE",
               "ACTIVE_LLM_ENDPOINT",
+              "ACTIVE_CALENDARS",
               "WHITE_LABELING",
               "LOCALE",
               "METADATA_LOCALE",
@@ -6700,6 +8185,7 @@
               "userDataFilter",
               "automation",
               "memoryItem",
+              "knowledgeRecommendation",
               "visualizationObject",
               "filterContext",
               "filterView"
@@ -7091,6 +8577,7 @@
               "metric",
               "userDataFilter",
               "automation",
+              "knowledgeRecommendation",
               "visualizationObject",
               "filterContext",
               "filterView"
@@ -7549,16 +9036,25 @@
               "YES",
               "NO"
             ],
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "id": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "notes": {
             "$ref": "#/components/schemas/Notes"
           },
           "original": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "otherAttributes": {
             "additionalProperties": {
@@ -7570,7 +9066,11 @@
             "$ref": "#/components/schemas/Skeleton"
           },
           "space": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true,
+              "namespace": "http://www.w3.org/XML/1998/namespace"
+            }
           },
           "srcDir": {
             "enum": [
@@ -7578,14 +9078,20 @@
               "RTL",
               "AUTO"
             ],
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "translate": {
             "enum": [
               "YES",
               "NO"
             ],
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "trgDir": {
             "enum": [
@@ -7593,7 +9099,10 @@
               "RTL",
               "AUTO"
             ],
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "unitOrGroup": {
             "items": {
@@ -7602,7 +9111,11 @@
             "type": "array"
           }
         },
-        "type": "object"
+        "type": "object",
+        "xml": {
+          "name": "file",
+          "namespace": "urn:oasis:names:tc:xliff:document:2.0"
+        }
       },
       "Filter": {
         "description": "List of filters to be applied to the new visualization",
@@ -7637,6 +9150,9 @@
           },
           {
             "$ref": "#/components/schemas/RangeMeasureValueFilter"
+          },
+          {
+            "$ref": "#/components/schemas/CompoundMeasureValueFilter"
           },
           {
             "$ref": "#/components/schemas/AbsoluteDateFilter"
@@ -8188,6 +9704,7 @@
                   "automation",
                   "automationResult",
                   "memoryItem",
+                  "knowledgeRecommendation",
                   "prompt",
                   "visualizationObject",
                   "filterContext",
@@ -9951,9 +11468,6 @@
                 "maxLength": 10000,
                 "type": "string"
               },
-              "locale": {
-                "type": "string"
-              },
               "tags": {
                 "items": {
                   "type": "string"
@@ -10126,7 +11640,6 @@
                 "type": "array"
               },
               "metadata": {
-                "additionalProperties": true,
                 "description": "Additional information for the automation.",
                 "maxLength": 250000,
                 "nullable": true,
@@ -10451,7 +11964,6 @@
                 "type": "array"
               },
               "metadata": {
-                "additionalProperties": true,
                 "description": "Additional information for the automation.",
                 "maxLength": 250000,
                 "nullable": true,
@@ -10894,7 +12406,6 @@
                 "type": "array"
               },
               "metadata": {
-                "additionalProperties": true,
                 "description": "Additional information for the automation.",
                 "maxLength": 250000,
                 "nullable": true,
@@ -12608,6 +14119,13 @@
         "properties": {
           "attributes": {
             "properties": {
+              "alternativeDataSourceId": {
+                "description": "Alternative data source ID. It is a weak reference meaning data source does not have to exist. All the entities (e.g. tables) from the data source must be available also in the alternative data source. It must be present in the same organization as the data source.",
+                "example": "pg_local_docker-demo2",
+                "nullable": true,
+                "pattern": "^(?!\\.)[.A-Za-z0-9_-]{1,255}$",
+                "type": "string"
+              },
               "cacheStrategy": {
                 "description": "Determines how the results coming from a particular datasource should be cached.",
                 "enum": [
@@ -12773,6 +14291,13 @@
         "properties": {
           "attributes": {
             "properties": {
+              "alternativeDataSourceId": {
+                "description": "Alternative data source ID. It is a weak reference meaning data source does not have to exist. All the entities (e.g. tables) from the data source must be available also in the alternative data source. It must be present in the same organization as the data source.",
+                "example": "pg_local_docker-demo2",
+                "nullable": true,
+                "pattern": "^(?!\\.)[.A-Za-z0-9_-]{1,255}$",
+                "type": "string"
+              },
               "authenticationType": {
                 "description": "Type of authentication used to connect to the database.",
                 "enum": [
@@ -12996,6 +14521,13 @@
         "properties": {
           "attributes": {
             "properties": {
+              "alternativeDataSourceId": {
+                "description": "Alternative data source ID. It is a weak reference meaning data source does not have to exist. All the entities (e.g. tables) from the data source must be available also in the alternative data source. It must be present in the same organization as the data source.",
+                "example": "pg_local_docker-demo2",
+                "nullable": true,
+                "pattern": "^(?!\\.)[.A-Za-z0-9_-]{1,255}$",
+                "type": "string"
+              },
               "cacheStrategy": {
                 "description": "Determines how the results coming from a particular datasource should be cached.",
                 "enum": [
@@ -16436,6 +17968,785 @@
         ],
         "type": "object"
       },
+      "JsonApiKnowledgeRecommendationIn": {
+        "description": "JSON:API representation of knowledgeRecommendation entity.",
+        "properties": {
+          "attributes": {
+            "properties": {
+              "analyticalDashboardTitle": {
+                "description": "Human-readable title of the analytical dashboard (denormalized for display)",
+                "example": "Portfolio Health Insights",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "analyzedPeriod": {
+                "description": "Analyzed time period (e.g., '2023-07' or 'July 2023')",
+                "example": "2023-07",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "analyzedValue": {
+                "description": "Metric value in the analyzed period (the observed value that triggered the anomaly)",
+                "example": 2.6E+9
+              },
+              "areRelationsValid": {
+                "type": "boolean"
+              },
+              "comparisonType": {
+                "description": "Time period for comparison",
+                "enum": [
+                  "MONTH",
+                  "QUARTER",
+                  "YEAR"
+                ],
+                "example": "MONTH",
+                "type": "string"
+              },
+              "confidence": {
+                "description": "Confidence score (0.0 to 1.0)",
+                "example": 0.62
+              },
+              "description": {
+                "description": "Description of the recommendation",
+                "maxLength": 10000,
+                "type": "string"
+              },
+              "direction": {
+                "description": "Direction of the metric change",
+                "enum": [
+                  "INCREASED",
+                  "DECREASED"
+                ],
+                "example": "DECREASED",
+                "type": "string"
+              },
+              "metricTitle": {
+                "description": "Human-readable title of the metric (denormalized for display)",
+                "example": "Revenue",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "recommendations": {
+                "description": "Structured recommendations data as JSON",
+                "example": "{\"summary\": \"...\", \"recommendations\": [...], \"key_metrics\": [...]}",
+                "type": "object"
+              },
+              "referencePeriod": {
+                "description": "Reference time period for comparison (e.g., '2023-06' or 'Jun 2023')",
+                "example": "2023-06",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "referenceValue": {
+                "description": "Metric value in the reference period",
+                "example": 2.4E+9
+              },
+              "sourceCount": {
+                "description": "Number of source documents used for generation",
+                "example": 2,
+                "format": "int32",
+                "type": "integer"
+              },
+              "tags": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title": {
+                "description": "Human-readable title for the recommendation, e.g. 'Revenue decreased vs last month'",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "widgetId": {
+                "description": "ID of the widget where the anomaly was detected",
+                "example": "widget-123",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "widgetName": {
+                "description": "Name of the widget where the anomaly was detected",
+                "example": "Revenue Trend",
+                "maxLength": 255,
+                "type": "string"
+              }
+            },
+            "required": [
+              "comparisonType",
+              "direction",
+              "title"
+            ],
+            "type": "object"
+          },
+          "id": {
+            "description": "API identifier of an object",
+            "example": "id1",
+            "pattern": "^(?!\\.)[.A-Za-z0-9_-]{1,255}$",
+            "type": "string"
+          },
+          "relationships": {
+            "properties": {
+              "analyticalDashboard": {
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/JsonApiAnalyticalDashboardToOneLinkage"
+                  }
+                },
+                "required": [
+                  "data"
+                ],
+                "type": "object"
+              },
+              "metric": {
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/JsonApiMetricToOneLinkage"
+                  }
+                },
+                "required": [
+                  "data"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "metric"
+            ],
+            "type": "object"
+          },
+          "type": {
+            "description": "Object type",
+            "enum": [
+              "knowledgeRecommendation"
+            ],
+            "example": "knowledgeRecommendation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "relationships",
+          "type"
+        ],
+        "type": "object"
+      },
+      "JsonApiKnowledgeRecommendationInDocument": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationIn"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "JsonApiKnowledgeRecommendationOut": {
+        "description": "JSON:API representation of knowledgeRecommendation entity.",
+        "properties": {
+          "attributes": {
+            "properties": {
+              "analyticalDashboardTitle": {
+                "description": "Human-readable title of the analytical dashboard (denormalized for display)",
+                "example": "Portfolio Health Insights",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "analyzedPeriod": {
+                "description": "Analyzed time period (e.g., '2023-07' or 'July 2023')",
+                "example": "2023-07",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "analyzedValue": {
+                "description": "Metric value in the analyzed period (the observed value that triggered the anomaly)",
+                "example": 2.6E+9
+              },
+              "areRelationsValid": {
+                "type": "boolean"
+              },
+              "comparisonType": {
+                "description": "Time period for comparison",
+                "enum": [
+                  "MONTH",
+                  "QUARTER",
+                  "YEAR"
+                ],
+                "example": "MONTH",
+                "type": "string"
+              },
+              "confidence": {
+                "description": "Confidence score (0.0 to 1.0)",
+                "example": 0.62
+              },
+              "createdAt": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "description": {
+                "description": "Description of the recommendation",
+                "maxLength": 10000,
+                "type": "string"
+              },
+              "direction": {
+                "description": "Direction of the metric change",
+                "enum": [
+                  "INCREASED",
+                  "DECREASED"
+                ],
+                "example": "DECREASED",
+                "type": "string"
+              },
+              "metricTitle": {
+                "description": "Human-readable title of the metric (denormalized for display)",
+                "example": "Revenue",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "recommendations": {
+                "description": "Structured recommendations data as JSON",
+                "example": "{\"summary\": \"...\", \"recommendations\": [...], \"key_metrics\": [...]}",
+                "type": "object"
+              },
+              "referencePeriod": {
+                "description": "Reference time period for comparison (e.g., '2023-06' or 'Jun 2023')",
+                "example": "2023-06",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "referenceValue": {
+                "description": "Metric value in the reference period",
+                "example": 2.4E+9
+              },
+              "sourceCount": {
+                "description": "Number of source documents used for generation",
+                "example": 2,
+                "format": "int32",
+                "type": "integer"
+              },
+              "tags": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title": {
+                "description": "Human-readable title for the recommendation, e.g. 'Revenue decreased vs last month'",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "widgetId": {
+                "description": "ID of the widget where the anomaly was detected",
+                "example": "widget-123",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "widgetName": {
+                "description": "Name of the widget where the anomaly was detected",
+                "example": "Revenue Trend",
+                "maxLength": 255,
+                "type": "string"
+              }
+            },
+            "required": [
+              "comparisonType",
+              "direction",
+              "title"
+            ],
+            "type": "object"
+          },
+          "id": {
+            "description": "API identifier of an object",
+            "example": "id1",
+            "pattern": "^(?!\\.)[.A-Za-z0-9_-]{1,255}$",
+            "type": "string"
+          },
+          "meta": {
+            "properties": {
+              "origin": {
+                "properties": {
+                  "originId": {
+                    "description": "defines id of the workspace where the entity comes from",
+                    "type": "string"
+                  },
+                  "originType": {
+                    "description": "defines type of the origin of the entity",
+                    "enum": [
+                      "NATIVE",
+                      "PARENT"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "originId",
+                  "originType"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "relationships": {
+            "properties": {
+              "analyticalDashboard": {
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/JsonApiAnalyticalDashboardToOneLinkage"
+                  }
+                },
+                "required": [
+                  "data"
+                ],
+                "type": "object"
+              },
+              "metric": {
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/JsonApiMetricToOneLinkage"
+                  }
+                },
+                "required": [
+                  "data"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "type": {
+            "description": "Object type",
+            "enum": [
+              "knowledgeRecommendation"
+            ],
+            "example": "knowledgeRecommendation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "type"
+        ],
+        "type": "object"
+      },
+      "JsonApiKnowledgeRecommendationOutDocument": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOut"
+          },
+          "included": {
+            "description": "Included resources",
+            "items": {
+              "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOutIncludes"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "links": {
+            "$ref": "#/components/schemas/ObjectLinks"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "JsonApiKnowledgeRecommendationOutIncludes": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/JsonApiMetricOutWithLinks"
+          },
+          {
+            "$ref": "#/components/schemas/JsonApiAnalyticalDashboardOutWithLinks"
+          }
+        ]
+      },
+      "JsonApiKnowledgeRecommendationOutList": {
+        "description": "A JSON:API document with a list of resources",
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOutWithLinks"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "included": {
+            "description": "Included resources",
+            "items": {
+              "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOutIncludes"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "links": {
+            "$ref": "#/components/schemas/ListLinks"
+          },
+          "meta": {
+            "properties": {
+              "page": {
+                "$ref": "#/components/schemas/PageMetadata"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "JsonApiKnowledgeRecommendationOutWithLinks": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOut"
+          },
+          {
+            "$ref": "#/components/schemas/ObjectLinksContainer"
+          }
+        ]
+      },
+      "JsonApiKnowledgeRecommendationPatch": {
+        "description": "JSON:API representation of patching knowledgeRecommendation entity.",
+        "properties": {
+          "attributes": {
+            "properties": {
+              "analyticalDashboardTitle": {
+                "description": "Human-readable title of the analytical dashboard (denormalized for display)",
+                "example": "Portfolio Health Insights",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "analyzedPeriod": {
+                "description": "Analyzed time period (e.g., '2023-07' or 'July 2023')",
+                "example": "2023-07",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "analyzedValue": {
+                "description": "Metric value in the analyzed period (the observed value that triggered the anomaly)",
+                "example": 2.6E+9
+              },
+              "areRelationsValid": {
+                "type": "boolean"
+              },
+              "comparisonType": {
+                "description": "Time period for comparison",
+                "enum": [
+                  "MONTH",
+                  "QUARTER",
+                  "YEAR"
+                ],
+                "example": "MONTH",
+                "type": "string"
+              },
+              "confidence": {
+                "description": "Confidence score (0.0 to 1.0)",
+                "example": 0.62
+              },
+              "description": {
+                "description": "Description of the recommendation",
+                "maxLength": 10000,
+                "type": "string"
+              },
+              "direction": {
+                "description": "Direction of the metric change",
+                "enum": [
+                  "INCREASED",
+                  "DECREASED"
+                ],
+                "example": "DECREASED",
+                "type": "string"
+              },
+              "metricTitle": {
+                "description": "Human-readable title of the metric (denormalized for display)",
+                "example": "Revenue",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "recommendations": {
+                "description": "Structured recommendations data as JSON",
+                "example": "{\"summary\": \"...\", \"recommendations\": [...], \"key_metrics\": [...]}",
+                "type": "object"
+              },
+              "referencePeriod": {
+                "description": "Reference time period for comparison (e.g., '2023-06' or 'Jun 2023')",
+                "example": "2023-06",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "referenceValue": {
+                "description": "Metric value in the reference period",
+                "example": 2.4E+9
+              },
+              "sourceCount": {
+                "description": "Number of source documents used for generation",
+                "example": 2,
+                "format": "int32",
+                "type": "integer"
+              },
+              "tags": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title": {
+                "description": "Human-readable title for the recommendation, e.g. 'Revenue decreased vs last month'",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "widgetId": {
+                "description": "ID of the widget where the anomaly was detected",
+                "example": "widget-123",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "widgetName": {
+                "description": "Name of the widget where the anomaly was detected",
+                "example": "Revenue Trend",
+                "maxLength": 255,
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "id": {
+            "description": "API identifier of an object",
+            "example": "id1",
+            "pattern": "^(?!\\.)[.A-Za-z0-9_-]{1,255}$",
+            "type": "string"
+          },
+          "relationships": {
+            "properties": {
+              "analyticalDashboard": {
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/JsonApiAnalyticalDashboardToOneLinkage"
+                  }
+                },
+                "required": [
+                  "data"
+                ],
+                "type": "object"
+              },
+              "metric": {
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/JsonApiMetricToOneLinkage"
+                  }
+                },
+                "required": [
+                  "data"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "type": {
+            "description": "Object type",
+            "enum": [
+              "knowledgeRecommendation"
+            ],
+            "example": "knowledgeRecommendation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attributes",
+          "id",
+          "relationships",
+          "type"
+        ],
+        "type": "object"
+      },
+      "JsonApiKnowledgeRecommendationPatchDocument": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationPatch"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "JsonApiKnowledgeRecommendationPostOptionalId": {
+        "description": "JSON:API representation of knowledgeRecommendation entity.",
+        "properties": {
+          "attributes": {
+            "properties": {
+              "analyticalDashboardTitle": {
+                "description": "Human-readable title of the analytical dashboard (denormalized for display)",
+                "example": "Portfolio Health Insights",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "analyzedPeriod": {
+                "description": "Analyzed time period (e.g., '2023-07' or 'July 2023')",
+                "example": "2023-07",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "analyzedValue": {
+                "description": "Metric value in the analyzed period (the observed value that triggered the anomaly)",
+                "example": 2.6E+9
+              },
+              "areRelationsValid": {
+                "type": "boolean"
+              },
+              "comparisonType": {
+                "description": "Time period for comparison",
+                "enum": [
+                  "MONTH",
+                  "QUARTER",
+                  "YEAR"
+                ],
+                "example": "MONTH",
+                "type": "string"
+              },
+              "confidence": {
+                "description": "Confidence score (0.0 to 1.0)",
+                "example": 0.62
+              },
+              "description": {
+                "description": "Description of the recommendation",
+                "maxLength": 10000,
+                "type": "string"
+              },
+              "direction": {
+                "description": "Direction of the metric change",
+                "enum": [
+                  "INCREASED",
+                  "DECREASED"
+                ],
+                "example": "DECREASED",
+                "type": "string"
+              },
+              "metricTitle": {
+                "description": "Human-readable title of the metric (denormalized for display)",
+                "example": "Revenue",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "recommendations": {
+                "description": "Structured recommendations data as JSON",
+                "example": "{\"summary\": \"...\", \"recommendations\": [...], \"key_metrics\": [...]}",
+                "type": "object"
+              },
+              "referencePeriod": {
+                "description": "Reference time period for comparison (e.g., '2023-06' or 'Jun 2023')",
+                "example": "2023-06",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "referenceValue": {
+                "description": "Metric value in the reference period",
+                "example": 2.4E+9
+              },
+              "sourceCount": {
+                "description": "Number of source documents used for generation",
+                "example": 2,
+                "format": "int32",
+                "type": "integer"
+              },
+              "tags": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title": {
+                "description": "Human-readable title for the recommendation, e.g. 'Revenue decreased vs last month'",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "widgetId": {
+                "description": "ID of the widget where the anomaly was detected",
+                "example": "widget-123",
+                "maxLength": 255,
+                "type": "string"
+              },
+              "widgetName": {
+                "description": "Name of the widget where the anomaly was detected",
+                "example": "Revenue Trend",
+                "maxLength": 255,
+                "type": "string"
+              }
+            },
+            "required": [
+              "comparisonType",
+              "direction",
+              "title"
+            ],
+            "type": "object"
+          },
+          "id": {
+            "description": "API identifier of an object",
+            "example": "id1",
+            "pattern": "^(?!\\.)[.A-Za-z0-9_-]{1,255}$",
+            "type": "string"
+          },
+          "relationships": {
+            "properties": {
+              "analyticalDashboard": {
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/JsonApiAnalyticalDashboardToOneLinkage"
+                  }
+                },
+                "required": [
+                  "data"
+                ],
+                "type": "object"
+              },
+              "metric": {
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/JsonApiMetricToOneLinkage"
+                  }
+                },
+                "required": [
+                  "data"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "metric"
+            ],
+            "type": "object"
+          },
+          "type": {
+            "description": "Object type",
+            "enum": [
+              "knowledgeRecommendation"
+            ],
+            "example": "knowledgeRecommendation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attributes",
+          "relationships",
+          "type"
+        ],
+        "type": "object"
+      },
+      "JsonApiKnowledgeRecommendationPostOptionalIdDocument": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationPostOptionalId"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "JsonApiLabelLinkage": {
         "description": "The \\\"type\\\" and \\\"id\\\" to non-empty members.",
         "properties": {
@@ -16686,9 +18997,6 @@
                 "maxLength": 10000,
                 "type": "string"
               },
-              "locale": {
-                "type": "string"
-              },
               "tags": {
                 "items": {
                   "type": "string"
@@ -16698,24 +19006,6 @@
               "title": {
                 "maxLength": 255,
                 "type": "string"
-              },
-              "translations": {
-                "items": {
-                  "properties": {
-                    "locale": {
-                      "type": "string"
-                    },
-                    "sourceColumn": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "locale",
-                    "sourceColumn"
-                  ],
-                  "type": "object"
-                },
-                "type": "array"
               }
             },
             "type": "object"
@@ -17505,7 +19795,9 @@
               "content": {
                 "properties": {
                   "format": {
+                    "description": "Excel-like format string with optional dynamic tokens. Filter value tokens: [$FILTER:<label_id>] for raw filter value passthrough. Currency tokens: [$CURRENCY:<label_id>] for currency symbol, with optional forms :symbol, :narrow, :code, :name. Locale abbreviations: [$K], [$M], [$B], [$T] for locale-specific scale abbreviations. Tokens are resolved at execution time based on AFM filters and user's format locale. Single-value filters only; multi-value filters use fallback values.",
                     "maxLength": 2048,
+                    "nullable": true,
                     "type": "string"
                   },
                   "maql": {
@@ -17612,7 +19904,9 @@
               "content": {
                 "properties": {
                   "format": {
+                    "description": "Excel-like format string with optional dynamic tokens. Filter value tokens: [$FILTER:<label_id>] for raw filter value passthrough. Currency tokens: [$CURRENCY:<label_id>] for currency symbol, with optional forms :symbol, :narrow, :code, :name. Locale abbreviations: [$K], [$M], [$B], [$T] for locale-specific scale abbreviations. Tokens are resolved at execution time based on AFM filters and user's format locale. Single-value filters only; multi-value filters use fallback values.",
                     "maxLength": 2048,
+                    "nullable": true,
                     "type": "string"
                   },
                   "maql": {
@@ -17894,7 +20188,9 @@
               "content": {
                 "properties": {
                   "format": {
+                    "description": "Excel-like format string with optional dynamic tokens. Filter value tokens: [$FILTER:<label_id>] for raw filter value passthrough. Currency tokens: [$CURRENCY:<label_id>] for currency symbol, with optional forms :symbol, :narrow, :code, :name. Locale abbreviations: [$K], [$M], [$B], [$T] for locale-specific scale abbreviations. Tokens are resolved at execution time based on AFM filters and user's format locale. Single-value filters only; multi-value filters use fallback values.",
                     "maxLength": 2048,
+                    "nullable": true,
                     "type": "string"
                   },
                   "maql": {
@@ -17979,7 +20275,9 @@
               "content": {
                 "properties": {
                   "format": {
+                    "description": "Excel-like format string with optional dynamic tokens. Filter value tokens: [$FILTER:<label_id>] for raw filter value passthrough. Currency tokens: [$CURRENCY:<label_id>] for currency symbol, with optional forms :symbol, :narrow, :code, :name. Locale abbreviations: [$K], [$M], [$B], [$T] for locale-specific scale abbreviations. Tokens are resolved at execution time based on AFM filters and user's format locale. Single-value filters only; multi-value filters use fallback values.",
                     "maxLength": 2048,
+                    "nullable": true,
                     "type": "string"
                   },
                   "maql": {
@@ -18061,6 +20359,15 @@
           "$ref": "#/components/schemas/JsonApiMetricLinkage"
         },
         "type": "array"
+      },
+      "JsonApiMetricToOneLinkage": {
+        "description": "References to other resource objects in a to-one (\\\"relationship\\\"). Relationships can be specified by including a member in a resource's links object.",
+        "nullable": true,
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/JsonApiMetricLinkage"
+          }
+        ]
       },
       "JsonApiNotificationChannelIdentifierOut": {
         "description": "JSON:API representation of notificationChannelIdentifier entity.",
@@ -19015,6 +21322,7 @@
                   "ACTIVE_THEME",
                   "ACTIVE_COLOR_PALETTE",
                   "ACTIVE_LLM_ENDPOINT",
+                  "ACTIVE_CALENDARS",
                   "WHITE_LABELING",
                   "LOCALE",
                   "METADATA_LOCALE",
@@ -19106,6 +21414,7 @@
                   "ACTIVE_THEME",
                   "ACTIVE_COLOR_PALETTE",
                   "ACTIVE_LLM_ENDPOINT",
+                  "ACTIVE_CALENDARS",
                   "WHITE_LABELING",
                   "LOCALE",
                   "METADATA_LOCALE",
@@ -19237,6 +21546,7 @@
                   "ACTIVE_THEME",
                   "ACTIVE_COLOR_PALETTE",
                   "ACTIVE_LLM_ENDPOINT",
+                  "ACTIVE_CALENDARS",
                   "WHITE_LABELING",
                   "LOCALE",
                   "METADATA_LOCALE",
@@ -20734,6 +23044,7 @@
                   "ACTIVE_THEME",
                   "ACTIVE_COLOR_PALETTE",
                   "ACTIVE_LLM_ENDPOINT",
+                  "ACTIVE_CALENDARS",
                   "WHITE_LABELING",
                   "LOCALE",
                   "METADATA_LOCALE",
@@ -20825,6 +23136,7 @@
                   "ACTIVE_THEME",
                   "ACTIVE_COLOR_PALETTE",
                   "ACTIVE_LLM_ENDPOINT",
+                  "ACTIVE_CALENDARS",
                   "WHITE_LABELING",
                   "LOCALE",
                   "METADATA_LOCALE",
@@ -21558,7 +23870,6 @@
                 "type": "array"
               },
               "metadata": {
-                "additionalProperties": true,
                 "description": "Additional information for the automation.",
                 "maxLength": 250000,
                 "nullable": true,
@@ -23019,6 +25330,7 @@
                   "ACTIVE_THEME",
                   "ACTIVE_COLOR_PALETTE",
                   "ACTIVE_LLM_ENDPOINT",
+                  "ACTIVE_CALENDARS",
                   "WHITE_LABELING",
                   "LOCALE",
                   "METADATA_LOCALE",
@@ -23110,6 +25422,7 @@
                   "ACTIVE_THEME",
                   "ACTIVE_COLOR_PALETTE",
                   "ACTIVE_LLM_ENDPOINT",
+                  "ACTIVE_CALENDARS",
                   "WHITE_LABELING",
                   "LOCALE",
                   "METADATA_LOCALE",
@@ -23267,6 +25580,7 @@
                   "ACTIVE_THEME",
                   "ACTIVE_COLOR_PALETTE",
                   "ACTIVE_LLM_ENDPOINT",
+                  "ACTIVE_CALENDARS",
                   "WHITE_LABELING",
                   "LOCALE",
                   "METADATA_LOCALE",
@@ -23358,6 +25672,7 @@
                   "ACTIVE_THEME",
                   "ACTIVE_COLOR_PALETTE",
                   "ACTIVE_LLM_ENDPOINT",
+                  "ACTIVE_CALENDARS",
                   "WHITE_LABELING",
                   "LOCALE",
                   "METADATA_LOCALE",
@@ -23763,6 +26078,18 @@
         ],
         "type": "object"
       },
+      "MeasureValueCondition": {
+        "description": "A condition for filtering by measure value. Can be either a comparison or a range condition.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ComparisonCondition"
+          },
+          {
+            "$ref": "#/components/schemas/RangeCondition"
+          }
+        ],
+        "type": "object"
+      },
       "MeasureValueFilter": {
         "description": "Abstract filter definition type filtering by the value of the metric.",
         "oneOf": [
@@ -23771,6 +26098,9 @@
           },
           {
             "$ref": "#/components/schemas/RangeMeasureValueFilter"
+          },
+          {
+            "$ref": "#/components/schemas/CompoundMeasureValueFilter"
           }
         ],
         "type": "object"
@@ -23983,16 +26313,25 @@
               "SOURCE",
               "TARGET"
             ],
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "category": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "content": {
             "type": "string"
           },
           "id": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "otherAttributes": {
             "additionalProperties": {
@@ -24002,10 +26341,17 @@
           },
           "priority": {
             "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "xml": {
+              "attribute": true
+            }
           }
         },
-        "type": "object"
+        "type": "object",
+        "xml": {
+          "name": "note",
+          "namespace": "urn:oasis:names:tc:xliff:document:2.0"
+        }
       },
       "Notes": {
         "properties": {
@@ -24016,7 +26362,14 @@
             "type": "array"
           }
         },
-        "type": "object"
+        "required": [
+          "note"
+        ],
+        "type": "object",
+        "xml": {
+          "name": "notes",
+          "namespace": "urn:oasis:names:tc:xliff:document:2.0"
+        }
       },
       "Notification": {
         "properties": {
@@ -24796,6 +27149,41 @@
         ],
         "type": "object"
       },
+      "RangeCondition": {
+        "description": "Condition that checks if the metric value is within a given range.",
+        "properties": {
+          "range": {
+            "properties": {
+              "from": {
+                "example": 100,
+                "type": "number"
+              },
+              "operator": {
+                "enum": [
+                  "BETWEEN",
+                  "NOT_BETWEEN"
+                ],
+                "example": "BETWEEN",
+                "type": "string"
+              },
+              "to": {
+                "example": 999,
+                "type": "number"
+              }
+            },
+            "required": [
+              "from",
+              "operator",
+              "to"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "range"
+        ],
+        "type": "object"
+      },
       "RangeMeasureValueFilter": {
         "description": "Filter the result by comparing specified metric to given range of values.",
         "properties": {
@@ -25308,6 +27696,7 @@
               "ACTIVE_THEME",
               "ACTIVE_COLOR_PALETTE",
               "ACTIVE_LLM_ENDPOINT",
+              "ACTIVE_CALENDARS",
               "WHITE_LABELING",
               "LOCALE",
               "METADATA_LOCALE",
@@ -25494,6 +27883,9 @@
             "type": "string"
           },
           "kid": {
+            "maxLength": 255,
+            "minLength": 0,
+            "pattern": "^[^.]",
             "type": "string"
           },
           "kty": {
@@ -26060,10 +28452,17 @@
             "type": "array"
           },
           "href": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           }
         },
-        "type": "object"
+        "type": "object",
+        "xml": {
+          "name": "skeleton",
+          "namespace": "urn:oasis:names:tc:xliff:document:2.0"
+        }
       },
       "SlidesExportRequest": {
         "description": "Export request object describing the export properties and metadata for slides exports.",
@@ -27906,19 +30305,39 @@
             "type": "object"
           },
           "space": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true,
+              "namespace": "http://www.w3.org/XML/1998/namespace"
+            }
           },
           "srcLang": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "trgLang": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           },
           "version": {
-            "type": "string"
+            "type": "string",
+            "xml": {
+              "attribute": true
+            }
           }
         },
-        "type": "object"
+        "required": [
+          "file"
+        ],
+        "type": "object",
+        "xml": {
+          "name": "xliff",
+          "namespace": "urn:oasis:names:tc:xliff:document:2.0"
+        }
       }
     }
   },
@@ -27928,6 +30347,187 @@
   },
   "openapi": "3.0.1",
   "paths": {
+    "/api/v1/aac/workspaces/{workspaceId}/analyticsModel": {
+      "get": {
+        "description": "\n            Retrieve the analytics model of the workspace in Analytics as Code format.\n            \n            The returned format is compatible with the YAML definitions used by the \n            GoodData Analytics as Code VSCode extension. This includes metrics, \n            dashboards, visualizations, plugins, and attribute hierarchies.\n        ",
+        "operationId": "getAnalyticsModelAac",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "exclude",
+            "required": false,
+            "schema": {
+              "items": {
+                "description": "Defines properties which should not be included in the payload.",
+                "enum": [
+                  "ACTIVITY_INFO"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AacAnalyticsModel"
+                }
+              }
+            },
+            "description": "Retrieved current analytics model in AAC format."
+          }
+        },
+        "summary": "Get analytics model in AAC format",
+        "tags": [
+          "aac",
+          "AAC - Analytics Model"
+        ],
+        "x-gdc-security-info": {
+          "description": "Permissions to read the analytics layout.",
+          "permissions": [
+            "ANALYZE"
+          ]
+        }
+      },
+      "put": {
+        "description": "\n            Set the analytics model of the workspace using Analytics as Code format.\n            \n            The input format is compatible with the YAML definitions used by the \n            GoodData Analytics as Code VSCode extension. This replaces the entire \n            analytics model with the provided definition, including metrics, \n            dashboards, visualizations, plugins, and attribute hierarchies.\n        ",
+        "operationId": "setAnalyticsModelAac",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AacAnalyticsModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Analytics model successfully set."
+          }
+        },
+        "summary": "Set analytics model from AAC format",
+        "tags": [
+          "aac",
+          "AAC - Analytics Model"
+        ],
+        "x-gdc-security-info": {
+          "description": "Permissions to modify the analytics layout.",
+          "permissions": [
+            "ANALYZE"
+          ]
+        }
+      }
+    },
+    "/api/v1/aac/workspaces/{workspaceId}/logicalModel": {
+      "get": {
+        "description": "\n            Retrieve the logical data model of the workspace in Analytics as Code format.\n            \n            The returned format is compatible with the YAML definitions used by the \n            GoodData Analytics as Code VSCode extension. Use this for exporting models\n            that can be directly used as YAML configuration files.\n        ",
+        "operationId": "getLogicalModelAac",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeParents",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AacLogicalModel"
+                }
+              }
+            },
+            "description": "Retrieved current logical model in AAC format."
+          }
+        },
+        "summary": "Get logical model in AAC format",
+        "tags": [
+          "aac",
+          "AAC - Logical Data Model"
+        ],
+        "x-gdc-security-info": {
+          "description": "Permissions to read the logical model.",
+          "permissions": [
+            "VIEW"
+          ]
+        }
+      },
+      "put": {
+        "description": "\n            Set the logical data model of the workspace using Analytics as Code format.\n            \n            The input format is compatible with the YAML definitions used by the \n            GoodData Analytics as Code VSCode extension. This replaces the entire \n            logical model with the provided definition.\n        ",
+        "operationId": "setLogicalModelAac",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AacLogicalModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Logical model successfully set."
+          }
+        },
+        "summary": "Set logical model from AAC format",
+        "tags": [
+          "aac",
+          "AAC - Logical Data Model"
+        ],
+        "x-gdc-security-info": {
+          "description": "Permissions required to alter the logical model.",
+          "permissions": [
+            "MANAGE"
+          ]
+        }
+      }
+    },
     "/api/v1/actions/ai/llmEndpoint/test": {
       "post": {
         "description": "Validates LLM endpoint with provided parameters.",
@@ -28213,6 +30813,55 @@
           }
         },
         "summary": "Generate logical data model (LDM) from physical data model (PDM)",
+        "tags": [
+          "Generate Logical Data Model",
+          "actions"
+        ],
+        "x-gdc-security-info": {
+          "description": "Minimal permission required to use this endpoint.",
+          "permissions": [
+            "MANAGE"
+          ]
+        }
+      }
+    },
+    "/api/v1/actions/dataSources/{dataSourceId}/generateLogicalModelAac": {
+      "post": {
+        "description": "\n            Generate logical data model (LDM) from physical data model (PDM) stored in data source,\n            returning the result in Analytics as Code (AAC) format compatible with the GoodData \n            VSCode extension YAML definitions.\n        ",
+        "operationId": "generateLogicalModelAac",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dataSourceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateLdmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AacLogicalModel"
+                }
+              }
+            },
+            "description": "LDM generated successfully in AAC format."
+          }
+        },
+        "summary": "Generate logical data model in AAC format from physical data model (PDM)",
         "tags": [
           "Generate Logical Data Model",
           "actions"
@@ -28983,6 +31632,23 @@
         "summary": "Manage Permissions for a Organization",
         "tags": [
           "Permissions",
+          "actions"
+        ]
+      }
+    },
+    "/api/v1/actions/organization/metadataCheck": {
+      "post": {
+        "description": "(BETA) Temporary solution. Resyncs all organization objects and full workspaces within the organization with target GEN_AI_CHECK.",
+        "operationId": "metadataCheckOrganization",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "(BETA) Check Organization Metadata Inconsistencies",
+        "tags": [
+          "AI",
+          "Metadata Check",
           "actions"
         ]
       }
@@ -38355,7 +41021,7 @@
           },
           {
             "description": "Include Meta objects.",
-            "example": "metaInclude=config,permissions,hierarchy,dataModelDatasets,page,all",
+            "example": "metaInclude=permissions,config,hierarchy,dataModelDatasets,page,all",
             "explode": false,
             "in": "query",
             "name": "metaInclude",
@@ -38364,8 +41030,8 @@
               "description": "Included meta objects",
               "items": {
                 "enum": [
-                  "config",
                   "permissions",
+                  "config",
                   "hierarchy",
                   "dataModelDatasets",
                   "page",
@@ -38431,7 +41097,7 @@
           },
           {
             "description": "Include Meta objects.",
-            "example": "metaInclude=config,permissions,hierarchy,dataModelDatasets,all",
+            "example": "metaInclude=permissions,config,hierarchy,dataModelDatasets,all",
             "explode": false,
             "in": "query",
             "name": "metaInclude",
@@ -38440,8 +41106,8 @@
               "description": "Included meta objects",
               "items": {
                 "enum": [
-                  "config",
                   "permissions",
+                  "config",
                   "hierarchy",
                   "dataModelDatasets",
                   "all",
@@ -38565,7 +41231,7 @@
           },
           {
             "description": "Include Meta objects.",
-            "example": "metaInclude=config,permissions,hierarchy,dataModelDatasets,all",
+            "example": "metaInclude=permissions,config,hierarchy,dataModelDatasets,all",
             "explode": false,
             "in": "query",
             "name": "metaInclude",
@@ -38574,8 +41240,8 @@
               "description": "Included meta objects",
               "items": {
                 "enum": [
-                  "config",
                   "permissions",
+                  "config",
                   "hierarchy",
                   "dataModelDatasets",
                   "all",
@@ -43909,7 +46575,7 @@
         "x-gdc-security-info": {
           "description": "Contains minimal permission level required to manage this object type.",
           "permissions": [
-            "ANALYZE"
+            "MANAGE"
           ]
         }
       }
@@ -45100,6 +47766,569 @@
         }
       }
     },
+    "/api/v1/entities/workspaces/{workspaceId}/knowledgeRecommendations": {
+      "get": {
+        "operationId": "getAllEntities@KnowledgeRecommendations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "origin",
+            "required": false,
+            "schema": {
+              "default": "ALL",
+              "description": "Defines scope of origin of objects. All by default.",
+              "enum": [
+                "ALL",
+                "PARENTS",
+                "NATIVE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filtering parameter in RSQL. See https://github.com/jirutka/rsql-parser. You can specify any object parameter and parameter of related entity (for example title=='Some Title';description=='desc'). Additionally, if the entity relationship represents a polymorphic entity type, it can be casted to its subtypes (for example relatedEntity::subtype.subtypeProperty=='Value 123').",
+            "example": "title==someString;description==someString;metric.id==321;analyticalDashboard.id==321",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Array of included collections or individual relationships. Includes are separated by commas (e.g. include=entity1s,entity2s). Collection include represents the inclusion of every relationship between this entity and the given collection. Relationship include represents the inclusion of the particular relationships only. If single parameter \"ALL\" is present, all possible includes are used (include=ALL).\n\n__WARNING:__ Individual include types (collection, relationship or ALL) cannot be combined together.",
+            "example": "metric,analyticalDashboard",
+            "explode": false,
+            "in": "query",
+            "name": "include",
+            "required": false,
+            "schema": {
+              "items": {
+                "enum": [
+                  "metrics",
+                  "analyticalDashboards",
+                  "metric",
+                  "analyticalDashboard",
+                  "ALL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/size"
+          },
+          {
+            "$ref": "#/components/parameters/sort"
+          },
+          {
+            "in": "header",
+            "name": "X-GDC-VALIDATE-RELATIONS",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Include Meta objects.",
+            "example": "metaInclude=origin,page,all",
+            "explode": false,
+            "in": "query",
+            "name": "metaInclude",
+            "required": false,
+            "schema": {
+              "description": "Included meta objects",
+              "items": {
+                "enum": [
+                  "origin",
+                  "page",
+                  "all",
+                  "ALL"
+                ],
+                "type": "string"
+              },
+              "type": "array",
+              "uniqueItems": true
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.gooddata.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOutList"
+                }
+              }
+            },
+            "description": "Request successfully processed"
+          }
+        },
+        "tags": [
+          "entities",
+          "workspace-object-controller"
+        ]
+      },
+      "post": {
+        "operationId": "createEntity@KnowledgeRecommendations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Array of included collections or individual relationships. Includes are separated by commas (e.g. include=entity1s,entity2s). Collection include represents the inclusion of every relationship between this entity and the given collection. Relationship include represents the inclusion of the particular relationships only. If single parameter \"ALL\" is present, all possible includes are used (include=ALL).\n\n__WARNING:__ Individual include types (collection, relationship or ALL) cannot be combined together.",
+            "example": "metric,analyticalDashboard",
+            "explode": false,
+            "in": "query",
+            "name": "include",
+            "required": false,
+            "schema": {
+              "items": {
+                "enum": [
+                  "metrics",
+                  "analyticalDashboards",
+                  "metric",
+                  "analyticalDashboard",
+                  "ALL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "description": "Include Meta objects.",
+            "example": "metaInclude=origin,all",
+            "explode": false,
+            "in": "query",
+            "name": "metaInclude",
+            "required": false,
+            "schema": {
+              "description": "Included meta objects",
+              "items": {
+                "enum": [
+                  "origin",
+                  "all",
+                  "ALL"
+                ],
+                "type": "string"
+              },
+              "type": "array",
+              "uniqueItems": true
+            },
+            "style": "form"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/vnd.gooddata.api+json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationPostOptionalIdDocument"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/vnd.gooddata.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOutDocument"
+                }
+              }
+            },
+            "description": "Request successfully processed"
+          }
+        },
+        "tags": [
+          "entities",
+          "workspace-object-controller"
+        ]
+      }
+    },
+    "/api/v1/entities/workspaces/{workspaceId}/knowledgeRecommendations/search": {
+      "post": {
+        "operationId": "searchEntities@KnowledgeRecommendations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "origin",
+            "required": false,
+            "schema": {
+              "default": "ALL",
+              "description": "Defines scope of origin of objects. All by default.",
+              "enum": [
+                "ALL",
+                "PARENTS",
+                "NATIVE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-GDC-VALIDATE-RELATIONS",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntitySearchBody"
+              }
+            }
+          },
+          "description": "Search request body with filter, pagination, and sorting options",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.gooddata.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOutList"
+                }
+              }
+            },
+            "description": "Request successfully processed"
+          }
+        },
+        "tags": [
+          "entities",
+          "workspace-object-controller"
+        ]
+      }
+    },
+    "/api/v1/entities/workspaces/{workspaceId}/knowledgeRecommendations/{objectId}": {
+      "delete": {
+        "operationId": "deleteEntity@KnowledgeRecommendations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "objectId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filtering parameter in RSQL. See https://github.com/jirutka/rsql-parser. You can specify any object parameter and parameter of related entity (for example title=='Some Title';description=='desc'). Additionally, if the entity relationship represents a polymorphic entity type, it can be casted to its subtypes (for example relatedEntity::subtype.subtypeProperty=='Value 123').",
+            "example": "title==someString;description==someString;metric.id==321;analyticalDashboard.id==321",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/Deleted"
+          }
+        },
+        "tags": [
+          "entities",
+          "workspace-object-controller"
+        ]
+      },
+      "get": {
+        "operationId": "getEntity@KnowledgeRecommendations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "objectId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filtering parameter in RSQL. See https://github.com/jirutka/rsql-parser. You can specify any object parameter and parameter of related entity (for example title=='Some Title';description=='desc'). Additionally, if the entity relationship represents a polymorphic entity type, it can be casted to its subtypes (for example relatedEntity::subtype.subtypeProperty=='Value 123').",
+            "example": "title==someString;description==someString;metric.id==321;analyticalDashboard.id==321",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Array of included collections or individual relationships. Includes are separated by commas (e.g. include=entity1s,entity2s). Collection include represents the inclusion of every relationship between this entity and the given collection. Relationship include represents the inclusion of the particular relationships only. If single parameter \"ALL\" is present, all possible includes are used (include=ALL).\n\n__WARNING:__ Individual include types (collection, relationship or ALL) cannot be combined together.",
+            "example": "metric,analyticalDashboard",
+            "explode": false,
+            "in": "query",
+            "name": "include",
+            "required": false,
+            "schema": {
+              "items": {
+                "enum": [
+                  "metrics",
+                  "analyticalDashboards",
+                  "metric",
+                  "analyticalDashboard",
+                  "ALL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          },
+          {
+            "in": "header",
+            "name": "X-GDC-VALIDATE-RELATIONS",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Include Meta objects.",
+            "example": "metaInclude=origin,all",
+            "explode": false,
+            "in": "query",
+            "name": "metaInclude",
+            "required": false,
+            "schema": {
+              "description": "Included meta objects",
+              "items": {
+                "enum": [
+                  "origin",
+                  "all",
+                  "ALL"
+                ],
+                "type": "string"
+              },
+              "type": "array",
+              "uniqueItems": true
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.gooddata.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOutDocument"
+                }
+              }
+            },
+            "description": "Request successfully processed"
+          }
+        },
+        "tags": [
+          "entities",
+          "workspace-object-controller"
+        ]
+      },
+      "patch": {
+        "operationId": "patchEntity@KnowledgeRecommendations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "objectId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filtering parameter in RSQL. See https://github.com/jirutka/rsql-parser. You can specify any object parameter and parameter of related entity (for example title=='Some Title';description=='desc'). Additionally, if the entity relationship represents a polymorphic entity type, it can be casted to its subtypes (for example relatedEntity::subtype.subtypeProperty=='Value 123').",
+            "example": "title==someString;description==someString;metric.id==321;analyticalDashboard.id==321",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Array of included collections or individual relationships. Includes are separated by commas (e.g. include=entity1s,entity2s). Collection include represents the inclusion of every relationship between this entity and the given collection. Relationship include represents the inclusion of the particular relationships only. If single parameter \"ALL\" is present, all possible includes are used (include=ALL).\n\n__WARNING:__ Individual include types (collection, relationship or ALL) cannot be combined together.",
+            "example": "metric,analyticalDashboard",
+            "explode": false,
+            "in": "query",
+            "name": "include",
+            "required": false,
+            "schema": {
+              "items": {
+                "enum": [
+                  "metrics",
+                  "analyticalDashboards",
+                  "metric",
+                  "analyticalDashboard",
+                  "ALL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/vnd.gooddata.api+json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationPatchDocument"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.gooddata.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOutDocument"
+                }
+              }
+            },
+            "description": "Request successfully processed"
+          }
+        },
+        "tags": [
+          "entities",
+          "workspace-object-controller"
+        ]
+      },
+      "put": {
+        "operationId": "updateEntity@KnowledgeRecommendations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspaceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "objectId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filtering parameter in RSQL. See https://github.com/jirutka/rsql-parser. You can specify any object parameter and parameter of related entity (for example title=='Some Title';description=='desc'). Additionally, if the entity relationship represents a polymorphic entity type, it can be casted to its subtypes (for example relatedEntity::subtype.subtypeProperty=='Value 123').",
+            "example": "title==someString;description==someString;metric.id==321;analyticalDashboard.id==321",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Array of included collections or individual relationships. Includes are separated by commas (e.g. include=entity1s,entity2s). Collection include represents the inclusion of every relationship between this entity and the given collection. Relationship include represents the inclusion of the particular relationships only. If single parameter \"ALL\" is present, all possible includes are used (include=ALL).\n\n__WARNING:__ Individual include types (collection, relationship or ALL) cannot be combined together.",
+            "example": "metric,analyticalDashboard",
+            "explode": false,
+            "in": "query",
+            "name": "include",
+            "required": false,
+            "schema": {
+              "items": {
+                "enum": [
+                  "metrics",
+                  "analyticalDashboards",
+                  "metric",
+                  "analyticalDashboard",
+                  "ALL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "style": "form"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/vnd.gooddata.api+json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationInDocument"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.gooddata.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonApiKnowledgeRecommendationOutDocument"
+                }
+              }
+            },
+            "description": "Request successfully processed"
+          }
+        },
+        "tags": [
+          "entities",
+          "workspace-object-controller"
+        ]
+      }
+    },
     "/api/v1/entities/workspaces/{workspaceId}/labels": {
       "get": {
         "operationId": "getAllEntities@Labels",
@@ -45483,7 +48712,7 @@
         "x-gdc-security-info": {
           "description": "Contains minimal permission level required to manage this object type.",
           "permissions": [
-            "ANALYZE"
+            "MANAGE"
           ]
         }
       }
@@ -51271,6 +54500,10 @@
     {
       "description": "Use case APIs for user management",
       "name": "User management"
+    },
+    {
+      "description": "| Analytics as Code APIs - YAML-compatible declarative interface",
+      "name": "aac"
     },
     {
       "description": "| execution of some form of computation (RPC over JSON)",

@@ -225,7 +225,6 @@ with gooddata_api_client.ApiClient() as api_client:
         data=JsonApiAttributePatch(
             attributes=JsonApiAttributePatchAttributes(
                 description="description_example",
-                locale="locale_example",
                 tags=[
                     "tags_example",
                 ],

@@ -223,7 +223,7 @@ with gooddata_api_client.ApiClient() as api_client:
     object_id = "objectId_example" # str | 
     json_api_dataset_patch_document = JsonApiDatasetPatchDocument(
         data=JsonApiDatasetPatch(
-            attributes=JsonApiDatasetPatchAttributes(
+            attributes=JsonApiAttributePatchAttributes(
                 description="description_example",
                 tags=[
                     "tags_example",

@@ -45,6 +45,7 @@ with gooddata_api_client.ApiClient() as api_client:
     json_api_data_source_in_document = JsonApiDataSourceInDocument(
         data=JsonApiDataSourceIn(
             attributes=JsonApiDataSourceInAttributes(
+                alternative_data_source_id="pg_local_docker-demo2",
                 cache_strategy="ALWAYS",
                 client_id="client_id_example",
                 client_secret="client_secret_example",
@@ -547,6 +548,7 @@ with gooddata_api_client.ApiClient() as api_client:
     json_api_data_source_patch_document = JsonApiDataSourcePatchDocument(
         data=JsonApiDataSourcePatch(
             attributes=JsonApiDataSourcePatchAttributes(
+                alternative_data_source_id="pg_local_docker-demo2",
                 cache_strategy="ALWAYS",
                 client_id="client_id_example",
                 client_secret="client_secret_example",
@@ -653,6 +655,7 @@ with gooddata_api_client.ApiClient() as api_client:
     json_api_data_source_in_document = JsonApiDataSourceInDocument(
         data=JsonApiDataSourceIn(
             attributes=JsonApiDataSourceInAttributes(
+                alternative_data_source_id="pg_local_docker-demo2",
                 cache_strategy="ALWAYS",
                 client_id="client_id_example",
                 client_secret="client_secret_example",

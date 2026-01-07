@@ -764,10 +764,12 @@ class CatalogWorkspaceContentService(CatalogServiceBase):
             AacAnalyticsModel:
                 Analytics model in AAC format.
         """
-        kwargs = {"workspace_id": workspace_id}
         if exclude is not None:
-            kwargs["exclude"] = exclude
-        return self._aac_api.get_analytics_model_aac(**kwargs)
+            return self._aac_api.get_analytics_model_aac(
+                workspace_id=workspace_id,
+                exclude=exclude,
+            )
+        return self._aac_api.get_analytics_model_aac(workspace_id=workspace_id)
 
     def put_aac_analytics_model(
         self,

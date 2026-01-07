@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 from gooddata_api_client.exceptions import NotFoundException
+from gooddata_api_client.model.aac_logical_model import AacLogicalModel
 
 from gooddata_sdk.catalog.catalog_service_base import CatalogServiceBase
 from gooddata_sdk.catalog.data_source.action_model.requests.ldm_request import (
@@ -303,6 +304,29 @@ class CatalogDataSourceService(CatalogServiceBase):
         return CatalogDeclarativeModel.from_api(
             self._actions_api.generate_logical_model(data_source_id, generate_ldm_request.to_api())
         )
+
+    def generate_logical_model_aac(
+        self,
+        data_source_id: str,
+        generate_ldm_request: CatalogGenerateLdmRequest = CatalogGenerateLdmRequest(separator="__", wdf_prefix="wdf"),
+    ) -> AacLogicalModel:
+        """Generate logical data model in AAC (Analytics as Code) format from a data source.
+
+        This method scans the physical data model (PDM) of the data source and
+        generates a logical data model in AAC format, which is compatible with
+        the GoodData Analytics as Code VSCode extension.
+
+        Args:
+            data_source_id (str):
+                Data Source identification string. e.g. "demo"
+            generate_ldm_request (CatalogGenerateLdmRequest, optional):
+                LDM options. Defaults to CatalogGenerateLdmRequest(separator="__", wdf_prefix="wdf")
+
+        Returns:
+            AacLogicalModel:
+                Logical data model in AAC format containing datasets and date_datasets.
+        """
+        return self._actions_api.generate_logical_model_aac(data_source_id, generate_ldm_request.to_api())
 
     def scan_pdm_and_generate_logical_model(
         self,

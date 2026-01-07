@@ -71,6 +71,7 @@ class GoodDataApiClient:
         self._layout_api = apis.LayoutApi(self._api_client)
         self._actions_api = apis.ActionsApi(self._api_client)
         self._user_management_api = apis.UserManagementApi(self._api_client)
+        self._aac_api = apis.AacApi(self._api_client)
         self._executions_cancellable = executions_cancellable
 
     def _do_post_request(
@@ -153,6 +154,10 @@ class GoodDataApiClient:
     @property
     def user_management_api(self) -> apis.UserManagementApi:
         return self._user_management_api
+
+    @property
+    def aac_api(self) -> apis.AacApi:
+        return self._aac_api
 
     @property
     def executions_cancellable(self) -> bool:

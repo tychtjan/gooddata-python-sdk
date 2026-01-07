@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Literal, Optional, Union
 
 import gooddata_api_client.models as afm_models
+from gooddata_api_client.model.aac_analytics_model import AacAnalyticsModel
+from gooddata_api_client.model.aac_logical_model import AacLogicalModel
 from gooddata_api_client.model.elements_request import ElementsRequest
 
 from gooddata_sdk.catalog.catalog_service_base import CatalogServiceBase
@@ -684,3 +686,109 @@ class CatalogWorkspaceContentService(CatalogServiceBase):
             workspace_id, request, _check_return_type=False, **paging_params
         )
         return [v["title"] for v in values["elements"]]
+
+    # ==========================================================
+    # AAC (Analytics as Code) Layout APIs
+    # ==========================================================
+
+    def get_aac_logical_model(
+        self,
+        workspace_id: str,
+        include_parents: bool = False,
+    ) -> AacLogicalModel:
+        """Get the logical data model in AAC (Analytics as Code) format.
+
+        The AAC format is designed for version control and is compatible with
+        the GoodData Analytics as Code VSCode extension. It uses snake_case
+        naming and a simplified YAML-friendly structure.
+
+        Args:
+            workspace_id (str):
+                Workspace identification string e.g. "demo"
+            include_parents (bool):
+                If True, include logical model objects from parent workspaces.
+                Defaults to False.
+
+        Returns:
+            AacLogicalModel:
+                Logical data model in AAC format containing datasets and date_datasets.
+        """
+        return self._aac_api.get_logical_model_aac(
+            workspace_id=workspace_id,
+            include_parents=include_parents,
+        )
+
+    def put_aac_logical_model(
+        self,
+        workspace_id: str,
+        ldm: AacLogicalModel,
+    ) -> None:
+        """Set the logical data model from AAC (Analytics as Code) format.
+
+        Note: This method cannot be used on child workspaces - only root workspaces
+        can have their LDM modified through the AAC APIs.
+
+        Args:
+            workspace_id (str):
+                Workspace identification string e.g. "demo"
+            ldm (AacLogicalModel):
+                Logical data model in AAC format.
+
+        Returns:
+            None
+        """
+        self._aac_api.set_logical_model_aac(
+            workspace_id=workspace_id,
+            aac_logical_model=ldm,
+        )
+
+    def get_aac_analytics_model(
+        self,
+        workspace_id: str,
+        exclude: Optional[list[str]] = None,
+    ) -> AacAnalyticsModel:
+        """Get the analytics model in AAC (Analytics as Code) format.
+
+        The AAC format is designed for version control and is compatible with
+        the GoodData Analytics as Code VSCode extension. It includes metrics,
+        dashboards, visualizations, plugins, and attribute hierarchies.
+
+        Args:
+            workspace_id (str):
+                Workspace identification string e.g. "demo"
+            exclude (Optional[list[str]]):
+                List of items to exclude from the response.
+                Valid values: ["ACTIVITY_INFO"]
+
+        Returns:
+            AacAnalyticsModel:
+                Analytics model in AAC format.
+        """
+        kwargs = {"workspace_id": workspace_id}
+        if exclude is not None:
+            kwargs["exclude"] = exclude
+        return self._aac_api.get_analytics_model_aac(**kwargs)
+
+    def put_aac_analytics_model(
+        self,
+        workspace_id: str,
+        analytics_model: AacAnalyticsModel,
+    ) -> None:
+        """Set the analytics model from AAC (Analytics as Code) format.
+
+        Note: This method cannot be used on child workspaces. Export definitions
+        are preserved during PUT operations (not overwritten by AAC APIs).
+
+        Args:
+            workspace_id (str):
+                Workspace identification string e.g. "demo"
+            analytics_model (AacAnalyticsModel):
+                Analytics model in AAC format.
+
+        Returns:
+            None
+        """
+        self._aac_api.set_analytics_model_aac(
+            workspace_id=workspace_id,
+            aac_analytics_model=analytics_model,
+        )

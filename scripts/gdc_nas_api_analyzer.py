@@ -8,6 +8,12 @@ Identifies changes that require updates to gooddata-python-sdk.
 
 Based on gdc-nas-diff-analyzer.py but uses GitHub API instead of local git.
 
+Features:
+- OpenAPI semantic analysis (endpoints, schemas, parameters)
+- Proto file change detection (messages, RPCs)
+- Controller endpoint extraction
+- Full SDK impact reporting
+
 Usage:
     # Analyze last N commits (default: 200)
     python gdc_nas_api_analyzer.py --commits 200 --output-dir ./reports
@@ -24,6 +30,7 @@ Requires:
 """
 
 import argparse
+import base64
 import json
 import re
 import subprocess
@@ -222,6 +229,54 @@ class FileChange:
 
 
 @dataclass
+class OpenAPIChange:
+    """Represents a single OpenAPI endpoint or schema change."""
+
+    name: str  # Path for endpoints, schema name for models
+    change_type: str  # 'added', 'removed', 'modified'
+    details: dict = field(default_factory=dict)
+
+
+@dataclass
+class OpenAPIAnalysis:
+    """Analysis of OpenAPI specification changes."""
+
+    endpoints: list[OpenAPIChange] = field(default_factory=list)
+    schemas: list[OpenAPIChange] = field(default_factory=list)
+    parameters: list[OpenAPIChange] = field(default_factory=list)
+
+    @property
+    def has_changes(self) -> bool:
+        return bool(self.endpoints or self.schemas or self.parameters)
+
+    @property
+    def summary(self) -> str:
+        """Return a one-line summary of changes."""
+        parts = []
+        if self.endpoints:
+            added = len([e for e in self.endpoints if e.change_type == "added"])
+            removed = len([e for e in self.endpoints if e.change_type == "removed"])
+            modified = len([e for e in self.endpoints if e.change_type == "modified"])
+            if added:
+                parts.append(f"+{added} endpoints")
+            if removed:
+                parts.append(f"-{removed} endpoints")
+            if modified:
+                parts.append(f"~{modified} endpoints")
+        if self.schemas:
+            added = len([s for s in self.schemas if s.change_type == "added"])
+            removed = len([s for s in self.schemas if s.change_type == "removed"])
+            modified = len([s for s in self.schemas if s.change_type == "modified"])
+            if added:
+                parts.append(f"+{added} schemas")
+            if removed:
+                parts.append(f"-{removed} schemas")
+            if modified:
+                parts.append(f"~{modified} schemas")
+        return ", ".join(parts) if parts else "No semantic changes detected"
+
+
+@dataclass
 class CommitAnalysis:
     """Analysis of a single commit."""
 
@@ -236,6 +291,10 @@ class CommitAnalysis:
     services: set[str] = field(default_factory=set)
     total_additions: int = 0
     total_deletions: int = 0
+    openapi_analysis: OpenAPIAnalysis | None = None
+    proto_changes: list[dict] = field(default_factory=list)
+    endpoint_changes: list[dict] = field(default_factory=list)
+    parent_sha: str = ""
 
 
 # =============================================================================
@@ -254,6 +313,9 @@ def gh_api(endpoint: str, method: str = "GET") -> dict | list | None:
         )
         return json.loads(result.stdout) if result.stdout else None
     except subprocess.CalledProcessError as e:
+        # Silently return None for 404 errors (file not found)
+        if "404" in str(e.stderr):
+            return None
         print(f"API error for {endpoint}: {e.stderr}", file=sys.stderr)
         return None
     except json.JSONDecodeError as e:
@@ -295,6 +357,19 @@ def get_commit_details(repo: str, sha: str) -> dict | None:
     """Fetch detailed commit info including files changed."""
     endpoint = f"repos/{repo}/commits/{sha}"
     return gh_api(endpoint)
+
+
+def get_file_content_at_commit(repo: str, file_path: str, commit_sha: str) -> str | None:
+    """Get file content at a specific commit using GitHub API."""
+    endpoint = f"repos/{repo}/contents/{file_path}?ref={commit_sha}"
+    data = gh_api(endpoint)
+    if data and "content" in data:
+        try:
+            # GitHub returns base64 encoded content
+            return base64.b64decode(data["content"]).decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            return None
+    return None
 
 
 # =============================================================================
@@ -352,6 +427,205 @@ def is_merge_commit(message: str) -> bool:
     return msg_lower.startswith(("merge pull request", "merge branch"))
 
 
+def extract_proto_changes(diff_content: str) -> list[dict]:
+    """Extract proto message and service changes from diff."""
+    changes = []
+
+    # Message definitions
+    msg_pattern = r"^([+-])\s*message\s+(\w+)"
+    for match in re.finditer(msg_pattern, diff_content, re.MULTILINE):
+        changes.append(
+            {"type": "message", "name": match.group(2), "change_type": "added" if match.group(1) == "+" else "removed"}
+        )
+
+    # RPC definitions
+    rpc_pattern = r"^([+-])\s*rpc\s+(\w+)"
+    for match in re.finditer(rpc_pattern, diff_content, re.MULTILINE):
+        changes.append(
+            {"type": "rpc", "name": match.group(2), "change_type": "added" if match.group(1) == "+" else "removed"}
+        )
+
+    return changes
+
+
+def extract_endpoint_info_from_diff(diff_content: str) -> list[dict]:
+    """Extract REST endpoint changes from controller diff."""
+    endpoints = []
+
+    # Spring annotations pattern
+    annotation_pattern = r'^([+-])\s*@(GetMapping|PostMapping|PutMapping|DeleteMapping|PatchMapping|RequestMapping)\s*\(\s*["\']?([^"\')\s]+)'
+
+    for match in re.finditer(annotation_pattern, diff_content, re.MULTILINE):
+        change_type = "added" if match.group(1) == "+" else "removed"
+        method = match.group(2).replace("Mapping", "").upper()
+        if method == "REQUEST":
+            method = "MIXED"
+        path = match.group(3)
+        endpoints.append({"method": method, "path": path, "change_type": change_type})
+
+    return endpoints
+
+
+def analyze_openapi_diff(repo: str, file_path: str, before_sha: str, after_sha: str) -> OpenAPIAnalysis:
+    """
+    Analyze OpenAPI specification changes between two commits.
+
+    Compares the JSON structure to identify:
+    - New/removed/modified endpoints (paths)
+    - New/removed/modified schemas (components/schemas)
+    - New/removed/modified parameters
+    """
+    analysis = OpenAPIAnalysis()
+
+    # Get file content before and after
+    before_content = get_file_content_at_commit(repo, file_path, before_sha)
+    after_content = get_file_content_at_commit(repo, file_path, after_sha)
+
+    # Parse JSON
+    before_spec = {}
+    after_spec = {}
+
+    try:
+        if before_content:
+            before_spec = json.loads(before_content)
+    except json.JSONDecodeError:
+        pass
+
+    try:
+        if after_content:
+            after_spec = json.loads(after_content)
+    except json.JSONDecodeError:
+        pass
+
+    # If we couldn't parse either, return empty analysis
+    if not before_spec and not after_spec:
+        return analysis
+
+    # Analyze paths (endpoints)
+    before_paths = before_spec.get("paths", {})
+    after_paths = after_spec.get("paths", {})
+
+    all_paths = set(before_paths.keys()) | set(after_paths.keys())
+
+    for path in sorted(all_paths):
+        before_path_data = before_paths.get(path, {})
+        after_path_data = after_paths.get(path, {})
+
+        if path not in before_paths:
+            # New endpoint
+            methods = [
+                m.upper() for m in after_path_data if m in ("get", "post", "put", "delete", "patch", "options", "head")
+            ]
+            analysis.endpoints.append(OpenAPIChange(name=path, change_type="added", details={"methods": methods}))
+        elif path not in after_paths:
+            # Removed endpoint
+            methods = [
+                m.upper() for m in before_path_data if m in ("get", "post", "put", "delete", "patch", "options", "head")
+            ]
+            analysis.endpoints.append(OpenAPIChange(name=path, change_type="removed", details={"methods": methods}))
+        else:
+            # Check for method changes within the path
+            before_methods = set(
+                m for m in before_path_data if m in ("get", "post", "put", "delete", "patch", "options", "head")
+            )
+            after_methods = set(
+                m for m in after_path_data if m in ("get", "post", "put", "delete", "patch", "options", "head")
+            )
+
+            added_methods = after_methods - before_methods
+            removed_methods = before_methods - after_methods
+
+            # Check for modifications in existing methods
+            modified_methods = [
+                method.upper()
+                for method in before_methods & after_methods
+                if before_path_data.get(method) != after_path_data.get(method)
+            ]
+
+            if added_methods or removed_methods or modified_methods:
+                analysis.endpoints.append(
+                    OpenAPIChange(
+                        name=path,
+                        change_type="modified",
+                        details={
+                            "added_methods": [m.upper() for m in added_methods],
+                            "removed_methods": [m.upper() for m in removed_methods],
+                            "modified_methods": modified_methods,
+                        },
+                    )
+                )
+
+    # Analyze schemas (components/schemas)
+    before_schemas = before_spec.get("components", {}).get("schemas", {})
+    after_schemas = after_spec.get("components", {}).get("schemas", {})
+
+    all_schemas = set(before_schemas.keys()) | set(after_schemas.keys())
+
+    for schema_name in sorted(all_schemas):
+        before_schema = before_schemas.get(schema_name)
+        after_schema = after_schemas.get(schema_name)
+
+        if schema_name not in before_schemas:
+            # New schema
+            schema_type = after_schema.get("type", "object") if after_schema else "object"
+            properties = list(after_schema.get("properties", {}).keys()) if after_schema else []
+            analysis.schemas.append(
+                OpenAPIChange(
+                    name=schema_name,
+                    change_type="added",
+                    details={"type": schema_type, "properties": properties[:10]},
+                )
+            )
+        elif schema_name not in after_schemas:
+            # Removed schema
+            schema_type = before_schema.get("type", "object") if before_schema else "object"
+            analysis.schemas.append(
+                OpenAPIChange(name=schema_name, change_type="removed", details={"type": schema_type})
+            )
+        elif before_schema != after_schema:
+            # Modified schema - find what changed
+            before_props = set(before_schema.get("properties", {}).keys()) if before_schema else set()
+            after_props = set(after_schema.get("properties", {}).keys()) if after_schema else set()
+
+            added_props = after_props - before_props
+            removed_props = before_props - after_props
+
+            # Check for modified properties
+            modified_props = [
+                prop
+                for prop in before_props & after_props
+                if before_schema.get("properties", {}).get(prop) != after_schema.get("properties", {}).get(prop)
+            ]
+
+            analysis.schemas.append(
+                OpenAPIChange(
+                    name=schema_name,
+                    change_type="modified",
+                    details={
+                        "added_properties": list(added_props)[:10],
+                        "removed_properties": list(removed_props)[:10],
+                        "modified_properties": modified_props[:10],
+                    },
+                )
+            )
+
+    # Analyze parameters (components/parameters)
+    before_params = before_spec.get("components", {}).get("parameters", {})
+    after_params = after_spec.get("components", {}).get("parameters", {})
+
+    all_params = set(before_params.keys()) | set(after_params.keys())
+
+    for param_name in sorted(all_params):
+        if param_name not in before_params:
+            analysis.parameters.append(OpenAPIChange(name=param_name, change_type="added", details={}))
+        elif param_name not in after_params:
+            analysis.parameters.append(OpenAPIChange(name=param_name, change_type="removed", details={}))
+        elif before_params.get(param_name) != after_params.get(param_name):
+            analysis.parameters.append(OpenAPIChange(name=param_name, change_type="modified", details={}))
+
+    return analysis
+
+
 def analyze_commit(repo: str, commit_data: dict) -> CommitAnalysis:
     """Analyze a single commit for SDK relevance."""
     sha = commit_data["sha"]
@@ -360,12 +634,17 @@ def analyze_commit(repo: str, commit_data: dict) -> CommitAnalysis:
     date = commit_data["commit"]["author"]["date"]
     url = commit_data.get("html_url", "")
 
+    # Get parent SHA for OpenAPI analysis
+    parents = commit_data.get("parents", [])
+    parent_sha = parents[0]["sha"] if parents else ""
+
     analysis = CommitAnalysis(
         sha=sha,
         message=message,
         author=author,
         date=date,
         url=url,
+        parent_sha=parent_sha,
     )
 
     # Get detailed commit info with files
@@ -396,10 +675,28 @@ def analyze_commit(repo: str, commit_data: dict) -> CommitAnalysis:
             if FILE_CATEGORIES[category]["sdk_relevant"]:
                 analysis.sdk_relevant = True
 
+            # Extract additional info based on category
+            if category == "proto_files" and file_change.patch:
+                proto_changes = extract_proto_changes(file_change.patch)
+                analysis.proto_changes.extend(proto_changes)
+
+            if category == "controllers" and file_change.patch:
+                endpoint_changes = extract_endpoint_info_from_diff(file_change.patch)
+                analysis.endpoint_changes.extend(endpoint_changes)
+
         # Track services
         service = extract_service(file_change.path)
         if service:
             analysis.services.add(service)
+
+    # Perform OpenAPI semantic analysis if we have OpenAPI changes
+    if "openapi_specs" in analysis.categories and parent_sha:
+        for file_change in analysis.categories["openapi_specs"]:
+            if file_change.path.endswith(".json"):
+                openapi_analysis = analyze_openapi_diff(repo, file_change.path, parent_sha, sha)
+                if openapi_analysis.has_changes:
+                    analysis.openapi_analysis = openapi_analysis
+                    break  # Use first OpenAPI file with changes
 
     return analysis
 
@@ -407,6 +704,111 @@ def analyze_commit(repo: str, commit_data: dict) -> CommitAnalysis:
 # =============================================================================
 # REPORT GENERATION
 # =============================================================================
+
+
+def format_openapi_analysis(analysis: OpenAPIAnalysis) -> list[str]:
+    """Format OpenAPI analysis results as markdown lines."""
+    lines = []
+
+    if not analysis.has_changes:
+        lines.append("*No semantic API changes detected (possibly formatting/comments only)*")
+        return lines
+
+    # Endpoints section
+    if analysis.endpoints:
+        lines.append("**Endpoint Changes:**")
+        lines.append("")
+
+        # Group by change type
+        added = [e for e in analysis.endpoints if e.change_type == "added"]
+        removed = [e for e in analysis.endpoints if e.change_type == "removed"]
+        modified = [e for e in analysis.endpoints if e.change_type == "modified"]
+
+        if added:
+            lines.append("*Added:*")
+            for ep in added:
+                methods = ", ".join(ep.details.get("methods", []))
+                lines.append(f"- ➕ `{ep.name}` [{methods}]")
+            lines.append("")
+
+        if removed:
+            lines.append("*Removed:*")
+            for ep in removed:
+                methods = ", ".join(ep.details.get("methods", []))
+                lines.append(f"- ➖ `{ep.name}` [{methods}]")
+            lines.append("")
+
+        if modified:
+            lines.append("*Modified:*")
+            for ep in modified:
+                changes = []
+                if ep.details.get("added_methods"):
+                    changes.append(f"+{','.join(ep.details['added_methods'])}")
+                if ep.details.get("removed_methods"):
+                    changes.append(f"-{','.join(ep.details['removed_methods'])}")
+                if ep.details.get("modified_methods"):
+                    changes.append(f"~{','.join(ep.details['modified_methods'])}")
+                lines.append(f"- 📝 `{ep.name}` [{', '.join(changes)}]")
+            lines.append("")
+
+    # Schemas section
+    if analysis.schemas:
+        lines.append("**Schema Changes:**")
+        lines.append("")
+
+        added = [s for s in analysis.schemas if s.change_type == "added"]
+        removed = [s for s in analysis.schemas if s.change_type == "removed"]
+        modified = [s for s in analysis.schemas if s.change_type == "modified"]
+
+        if added:
+            lines.append("*Added:*")
+            for schema in added:
+                props = schema.details.get("properties", [])
+                prop_hint = f" ({len(props)} props)" if props else ""
+                lines.append(f"- ➕ `{schema.name}`{prop_hint}")
+            lines.append("")
+
+        if removed:
+            lines.append("*Removed:*")
+            for schema in removed:
+                lines.append(f"- ➖ `{schema.name}`")
+            lines.append("")
+
+        if modified:
+            lines.append("*Modified:*")
+            for schema in modified:
+                details_parts = []
+                if schema.details.get("added_properties"):
+                    details_parts.append(f"+{len(schema.details['added_properties'])} props")
+                if schema.details.get("removed_properties"):
+                    details_parts.append(f"-{len(schema.details['removed_properties'])} props")
+                if schema.details.get("modified_properties"):
+                    details_parts.append(f"~{len(schema.details['modified_properties'])} props")
+                lines.append(f"- 📝 `{schema.name}` [{', '.join(details_parts)}]")
+
+                # Show property details
+                if schema.details.get("added_properties"):
+                    for prop in schema.details["added_properties"][:5]:
+                        lines.append(f"    - ➕ `{prop}`")
+                    if len(schema.details["added_properties"]) > 5:
+                        lines.append(f"    - ... and {len(schema.details['added_properties']) - 5} more")
+                if schema.details.get("removed_properties"):
+                    for prop in schema.details["removed_properties"][:5]:
+                        lines.append(f"    - ➖ `{prop}`")
+                    if len(schema.details["removed_properties"]) > 5:
+                        lines.append(f"    - ... and {len(schema.details['removed_properties']) - 5} more")
+            lines.append("")
+
+    # Parameters section
+    if analysis.parameters:
+        lines.append("**Parameter Changes:**")
+        lines.append("")
+        for param in analysis.parameters:
+            icon = {"added": "➕", "removed": "➖", "modified": "📝"}.get(param.change_type, "❓")
+            lines.append(f"- {icon} `{param.name}`")
+        lines.append("")
+
+    return lines
 
 
 def generate_summary_report(
@@ -458,6 +860,10 @@ def generate_summary_report(
         for cat in ["openapi_specs", "controllers", "models", "api_examples"]:
             if cat in commit.categories:
                 impacts.append(f"{cat}({len(commit.categories[cat])})")
+
+        # Add OpenAPI semantic summary if available
+        if commit.openapi_analysis and commit.openapi_analysis.has_changes:
+            impacts.append(f"API: {commit.openapi_analysis.summary}")
 
         lines.append(f"| [`{commit.sha[:8]}`]({commit.url}) | {jira_str} | {msg} | {', '.join(impacts)} |")
 
@@ -595,8 +1001,14 @@ def generate_commit_report(commit: CommitAnalysis, repo: str) -> str:
 
         lines.append("")
 
-        # Show patch for OpenAPI files
-        if cat_name == "openapi_specs":
+        # Show OpenAPI semantic analysis
+        if cat_name == "openapi_specs" and commit.openapi_analysis:
+            lines.append("#### Semantic API Changes")
+            lines.append("")
+            lines.extend(format_openapi_analysis(commit.openapi_analysis))
+
+        # Show patch for OpenAPI files if no semantic analysis
+        elif cat_name == "openapi_specs":
             for f in files:
                 if f.patch and len(f.patch) < 10000:
                     lines.extend(
@@ -614,6 +1026,32 @@ def generate_commit_report(commit: CommitAnalysis, repo: str) -> str:
                             "",
                         ]
                     )
+
+    # Proto changes
+    if commit.proto_changes:
+        lines.extend(
+            [
+                "## Proto Changes",
+                "",
+            ]
+        )
+        for change in commit.proto_changes:
+            icon = "➕" if change["change_type"] == "added" else "➖"
+            lines.append(f"- {icon} {change['type']}: `{change['name']}`")
+        lines.append("")
+
+    # Controller endpoint changes
+    if commit.endpoint_changes:
+        lines.extend(
+            [
+                "## REST Endpoint Changes",
+                "",
+            ]
+        )
+        for change in commit.endpoint_changes:
+            icon = "➕" if change["change_type"] == "added" else "➖"
+            lines.append(f"- {icon} `{change['method']} {change['path']}`")
+        lines.append("")
 
     # Python SDK Impact section
     sdk_cats = [cat for cat in commit.categories if FILE_CATEGORIES[cat]["sdk_relevant"]]
@@ -634,6 +1072,9 @@ def generate_commit_report(commit: CommitAnalysis, repo: str) -> str:
                     "",
                 ]
             )
+            if commit.openapi_analysis and commit.openapi_analysis.has_changes:
+                lines.append(f"**Summary:** {commit.openapi_analysis.summary}")
+                lines.append("")
 
         review_cats = [c for c in sdk_cats if c != "openapi_specs"]
         if review_cats:

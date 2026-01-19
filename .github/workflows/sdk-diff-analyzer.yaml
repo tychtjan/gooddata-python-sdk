@@ -19,6 +19,10 @@ on:
         description: 'Ignore last-analyzed state and analyze N commits from HEAD'
         default: 'false'
         type: boolean
+      debug:
+        description: 'Enable verbose debug logging'
+        default: 'true'
+        type: boolean
 
 env:
   # Tag in this repo that stores the last analyzed gdc-nas commit hash
@@ -28,17 +32,45 @@ env:
 jobs:
   analyze:
     name: Analyze gdc-nas changes
-    runs-on:
-      group: infra1-runners-arc
-      labels: runners-small
+    # Use self-hosted runners in production, GitHub-hosted for forks/testing
+    runs-on: ${{ github.repository == 'gooddata/gooddata-python-sdk' && 'infra1-runners-arc' || 'ubuntu-latest' }}
     permissions:
       contents: write
       actions: write
     steps:
+      - name: Debug - Show environment
+        run: |
+          echo "=== Environment Info ==="
+          echo "Repository: ${{ github.repository }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Runner OS: ${{ runner.os }}"
+          echo "Working directory: $(pwd)"
+          echo ""
+          echo "=== Inputs ==="
+          echo "commits_to_analyze: ${{ inputs.commits_to_analyze || '50' }}"
+          echo "force_full_scan: ${{ inputs.force_full_scan || 'false' }}"
+          echo "debug: ${{ inputs.debug || 'true' }}"
+
       - name: Checkout SDK repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Need full history for tag operations
+
+      - name: Debug - SDK repo info
+        run: |
+          echo "=== SDK Repository ==="
+          echo "Current directory: $(pwd)"
+          echo "Git status:"
+          git status
+          echo ""
+          echo "Recent tags:"
+          git tag -l | tail -10 || echo "No tags found"
+          echo ""
+          echo "Looking for state tag '${{ env.STATE_TAG }}':"
+          git show-ref --tags "${{ env.STATE_TAG }}" || echo "State tag not found"
 
       - name: Clone gdc-nas repository
         uses: actions/checkout@v4
@@ -48,16 +80,49 @@ jobs:
           fetch-depth: 0  # Full history needed for diff analysis
           token: ${{ secrets.GDC_NAS_READ_TOKEN || secrets.GITHUB_TOKEN }}
 
+      - name: Debug - gdc-nas repo info
+        run: |
+          echo "=== gdc-nas Repository ==="
+          echo "Directory contents:"
+          ls -la gdc-nas/ | head -20
+          echo ""
+          echo "Git log (last 5 commits):"
+          git -C gdc-nas log --oneline -5
+          echo ""
+          echo "Current HEAD:"
+          git -C gdc-nas rev-parse HEAD
+          echo ""
+          echo "Total commits in repo:"
+          git -C gdc-nas rev-list --count HEAD
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      - name: Debug - Python info
+        run: |
+          echo "=== Python Environment ==="
+          python3 --version
+          which python3
+          echo ""
+          echo "Analyzer script exists:"
+          ls -la scripts/gdc_nas_diff_analyzer.py || echo "SCRIPT NOT FOUND!"
+          echo ""
+          echo "Script is executable:"
+          head -5 scripts/gdc_nas_diff_analyzer.py
+
       - name: Get last analyzed commit
         id: state
         run: |
+          set -x  # Enable command tracing
+
           COMMITS_TO_ANALYZE="${{ inputs.commits_to_analyze || '50' }}"
           FORCE_FULL="${{ inputs.force_full_scan || 'false' }}"
+
+          echo "=== Determining analysis range ==="
+          echo "COMMITS_TO_ANALYZE: $COMMITS_TO_ANALYZE"
+          echo "FORCE_FULL: $FORCE_FULL"
 
           # Get current gdc-nas HEAD
           GDC_NAS_HEAD=$(git -C gdc-nas rev-parse HEAD)
@@ -70,11 +135,13 @@ jobs:
             echo "mode=force" >> $GITHUB_OUTPUT
           elif git show-ref --tags --quiet "$STATE_TAG"; then
             # Tag exists - get the stored gdc-nas commit from tag message
+            echo "State tag found, reading contents..."
             LAST_COMMIT=$(git tag -l --format='%(contents)' "$STATE_TAG" | head -1)
             echo "Found state tag with gdc-nas commit: $LAST_COMMIT"
 
             # Verify this commit exists in gdc-nas
             if git -C gdc-nas rev-parse "$LAST_COMMIT" >/dev/null 2>&1; then
+              echo "Commit verified in gdc-nas"
               echo "since=$LAST_COMMIT" >> $GITHUB_OUTPUT
               echo "mode=incremental" >> $GITHUB_OUTPUT
             else
@@ -88,50 +155,72 @@ jobs:
             echo "mode=initial" >> $GITHUB_OUTPUT
           fi
 
+          set +x
+
       - name: Check for new commits
         id: check
         working-directory: gdc-nas
         run: |
+          set -x
           SINCE="${{ steps.state.outputs.since }}"
+
+          echo "=== Checking commits ==="
+          echo "SINCE: $SINCE"
 
           # Count commits to analyze
           if [[ "$SINCE" == HEAD~* ]]; then
             NUM="${SINCE#HEAD~}"
             COMMIT_COUNT=$NUM
+            echo "Using HEAD~N format, will analyze $NUM commits"
           else
             COMMIT_COUNT=$(git rev-list --count "${SINCE}..HEAD" 2>/dev/null || echo "0")
+            echo "Counting commits from $SINCE to HEAD: $COMMIT_COUNT"
           fi
 
-          echo "Commits to analyze: $COMMIT_COUNT"
           echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
 
           if [ "$COMMIT_COUNT" -eq 0 ]; then
             echo "No new commits to analyze"
             echo "skip=true" >> $GITHUB_OUTPUT
           else
+            echo "Will analyze $COMMIT_COUNT commits"
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
+          set +x
 
       - name: Run SDK diff analyzer
         if: steps.check.outputs.skip != 'true'
         run: |
+          set -x
           mkdir -p reports
 
-          echo "Running analyzer with --since ${{ steps.state.outputs.since }}"
+          echo "=== Running Analyzer ==="
+          echo "Since: ${{ steps.state.outputs.since }}"
+          echo "Mode: ${{ steps.state.outputs.mode }}"
+          echo "Commit count: ${{ steps.check.outputs.commit_count }}"
 
+          # Run with verbose output
           python3 scripts/gdc_nas_diff_analyzer.py \
             --since "${{ steps.state.outputs.since }}" \
             --sdk-details \
             --output-dir ./reports \
-            --repo-path ./gdc-nas
+            --repo-path ./gdc-nas \
+            2>&1 | tee analyzer_output.log
+
+          ANALYZER_EXIT_CODE=${PIPESTATUS[0]}
+          echo "Analyzer exit code: $ANALYZER_EXIT_CODE"
+
+          echo ""
+          echo "=== Reports directory ==="
+          ls -la reports/ || echo "Reports directory empty or missing"
 
           # Check if any reports were generated
           if [ -f reports/00-summary.md ]; then
-            echo "SDK-relevant changes found"
+            echo ""
+            echo "=== Summary report content ==="
             cat reports/00-summary.md
           else
-            echo "No SDK-relevant changes detected"
-            # Create a minimal summary for record-keeping
+            echo "No SDK-relevant changes detected, creating minimal summary"
             cat > reports/00-summary.md << EOF
           # SDK Diff Analysis - No Changes
 
@@ -144,6 +233,7 @@ jobs:
           *No SDK-relevant changes detected in the analyzed commits.*
           EOF
           fi
+          set +x
 
       - name: Upload analysis reports
         if: steps.check.outputs.skip != 'true'
@@ -153,10 +243,23 @@ jobs:
           path: reports/
           retention-days: 30
 
+      - name: Upload analyzer log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-log-${{ github.run_number }}
+          path: analyzer_output.log
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Update state tag
         if: steps.check.outputs.skip != 'true'
         run: |
+          set -x
           GDC_NAS_HEAD="${{ steps.state.outputs.gdc_nas_head }}"
+
+          echo "=== Updating state tag ==="
+          echo "Will store gdc-nas commit: $GDC_NAS_HEAD"
 
           # Configure git for tagging
           git config user.name "github-actions[bot]"
@@ -164,9 +267,16 @@ jobs:
 
           # Create/update annotated tag with gdc-nas commit in message
           git tag -f -a "$STATE_TAG" -m "$GDC_NAS_HEAD"
+
+          echo "Pushing tag to origin..."
           git push -f origin "$STATE_TAG"
 
           echo "Updated $STATE_TAG to track gdc-nas commit: $GDC_NAS_HEAD"
+
+          # Verify
+          echo "Verifying tag:"
+          git show-ref --tags "$STATE_TAG"
+          set +x
 
       - name: Job summary
         if: always()
@@ -174,11 +284,13 @@ jobs:
           cat >> $GITHUB_STEP_SUMMARY << EOF
           ## SDK Diff Analyzer Results
 
-          - **Mode:** ${{ steps.state.outputs.mode }}
-          - **Since:** \`${{ steps.state.outputs.since }}\`
-          - **gdc-nas HEAD:** \`${{ steps.state.outputs.gdc_nas_head }}\`
-          - **Commits analyzed:** ${{ steps.check.outputs.commit_count }}
-          - **Skipped:** ${{ steps.check.outputs.skip }}
+          | Parameter | Value |
+          |-----------|-------|
+          | Mode | ${{ steps.state.outputs.mode }} |
+          | Since | \`${{ steps.state.outputs.since }}\` |
+          | gdc-nas HEAD | \`${{ steps.state.outputs.gdc_nas_head }}\` |
+          | Commits analyzed | ${{ steps.check.outputs.commit_count }} |
+          | Skipped | ${{ steps.check.outputs.skip }} |
 
           EOF
 

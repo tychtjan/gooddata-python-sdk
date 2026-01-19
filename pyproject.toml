@@ -118,6 +118,8 @@ target-version = "py310"
 "packages/gooddata-fdw/src/gooddata_fdw/__init__.py" = ["F401"]
 "packages/gooddata-flight-server/src/gooddata_flight_server/__init__.py" = ["F401"]
 "packages/gooddata-flexconnect/src/gooddata_flexconnect/__init__.py" = ["F401"]
+# Standalone analyzer script - ignore performance suggestions
+"scripts/gdc_nas_diff_analyzer.py" = ["PERF401", "PIE810"]
 
 [tool.ruff.format]
 exclude = ['(gooddata-api-client|.*\.snapshot\..*)']

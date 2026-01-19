@@ -25,7 +25,8 @@ on:
         type: boolean
 
 env:
-  GDC_NAS_REPO: 'gooddata/gdc-nas'
+  # Use fork for testing, main repo in production
+  GDC_NAS_REPO: ${{ github.repository_owner == 'gooddata' && 'gooddata/gdc-nas' || 'tychtjan/gdc-nas' }}
   # File in this repo that stores the last analyzed gdc-nas commit SHA
   STATE_FILE: '.github/gdc-nas-last-analyzed.txt'
 

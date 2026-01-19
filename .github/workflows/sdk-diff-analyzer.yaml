@@ -7,6 +7,9 @@ name: SDK Diff Analyzer
 on:
   schedule:
     - cron: '0 */6 * * *'  # Every 6 hours
+  push:
+    branches:
+      - feature/sdk-diff-analyzer  # Temporary: for testing
   workflow_dispatch:
     inputs:
       commits_to_analyze:

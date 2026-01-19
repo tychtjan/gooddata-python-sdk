@@ -14,8 +14,8 @@ on:
   workflow_dispatch:
     inputs:
       commits_to_analyze:
-        description: 'Number of commits to analyze (default: 50)'
-        default: '50'
+        description: 'Number of commits to analyze (default: 200)'
+        default: '200'
       since_commit:
         description: 'Analyze since this commit SHA (overrides state tag)'
         default: ''
@@ -51,7 +51,7 @@ jobs:
           echo "GH CLI version: $(gh --version | head -1)"
           echo ""
           echo "=== Inputs ==="
-          echo "commits_to_analyze: ${{ inputs.commits_to_analyze || '50' }}"
+          echo "commits_to_analyze: ${{ inputs.commits_to_analyze || '200' }}"
           echo "since_commit: ${{ inputs.since_commit || '(not set)' }}"
 
       - name: Verify gdc-nas access
@@ -86,7 +86,7 @@ jobs:
       - name: Determine analysis range
         id: range
         run: |
-          COMMITS="${{ inputs.commits_to_analyze || '50' }}"
+          COMMITS="${{ inputs.commits_to_analyze || '200' }}"
           SINCE_INPUT="${{ inputs.since_commit }}"
 
           echo "=== Determining range ==="
@@ -132,7 +132,7 @@ jobs:
           if [ -n "${{ steps.range.outputs.since }}" ]; then
             ARGS="$ARGS --since ${{ steps.range.outputs.since }}"
           else
-            ARGS="$ARGS --commits ${{ steps.range.outputs.commits || '50' }}"
+            ARGS="$ARGS --commits ${{ steps.range.outputs.commits || '200' }}"
           fi
 
           echo "Running: python3 scripts/gdc_nas_api_analyzer.py $ARGS"

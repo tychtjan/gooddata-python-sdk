@@ -121,6 +121,7 @@ target-version = "py310"
 # Standalone analyzer scripts - ignore performance suggestions
 "scripts/gdc_nas_diff_analyzer.py" = ["PERF401", "PIE810"]
 "scripts/gdc_nas_api_analyzer.py" = ["PERF401"]
+"scripts/cluster_sdk_reports.py" = ["PERF401"]
 
 [tool.ruff.format]
 exclude = ['(gooddata-api-client|.*\.snapshot\..*)']

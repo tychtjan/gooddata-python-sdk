@@ -19,6 +19,14 @@ on:
       since_commit:
         description: 'Analyze since this commit SHA (overrides state tag)'
         default: ''
+      enable_clustering:
+        description: 'Enable report clustering (groups similar changes)'
+        default: 'true'
+        type: boolean
+      use_claude_clustering:
+        description: 'Use Claude for enhanced clustering (requires ANTHROPIC_API_KEY)'
+        default: 'false'
+        type: boolean
       debug:
         description: 'Enable verbose debug logging'
         default: 'true'
@@ -146,6 +154,43 @@ jobs:
           REPORT_COUNT=$(ls reports/*.md 2>/dev/null | grep -v "00-summary" | wc -l || echo "0")
           echo "sdk_reports=$REPORT_COUNT" >> $GITHUB_OUTPUT
 
+      - name: Cluster similar reports
+        id: cluster
+        if: steps.analyze.outputs.sdk_reports > 1 && inputs.enable_clustering != 'false'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          echo "=== Clustering Reports ==="
+          echo "Reports to cluster: ${{ steps.analyze.outputs.sdk_reports }}"
+
+          mkdir -p clustered
+
+          # Build clustering arguments
+          CLUSTER_ARGS="--input-dir ./reports --output-dir ./clustered"
+
+          # Check if Claude enhancement is requested and API key is available
+          if [ "${{ inputs.use_claude_clustering }}" = "true" ] && [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "Claude enhancement enabled"
+            pip install anthropic --quiet
+            CLUSTER_ARGS="$CLUSTER_ARGS --use-claude"
+          elif [ "${{ inputs.use_claude_clustering }}" = "true" ]; then
+            echo "Warning: Claude clustering requested but ANTHROPIC_API_KEY not set"
+            echo "Falling back to heuristic clustering"
+          fi
+
+          echo "Running: python3 scripts/cluster_sdk_reports.py $CLUSTER_ARGS"
+          python3 scripts/cluster_sdk_reports.py $CLUSTER_ARGS 2>&1 | tee clustering.log
+
+          # Count clusters
+          CLUSTER_COUNT=$(ls clustered/cluster-*.md 2>/dev/null | wc -l || echo "0")
+          echo "clusters_created=$CLUSTER_COUNT" >> $GITHUB_OUTPUT
+
+          if [ -f clustered/clusters.json ]; then
+            echo ""
+            echo "=== Cluster Summary ==="
+            cat clustered/00-clusters.md
+          fi
+
       - name: Upload analysis reports
         uses: actions/upload-artifact@v4
         with:
@@ -153,12 +198,22 @@ jobs:
           path: reports/
           retention-days: 30
 
+      - name: Upload clustered reports
+        if: steps.cluster.outputs.clusters_created > 0
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-clustered-reports-${{ github.run_number }}
+          path: clustered/
+          retention-days: 30
+
       - name: Upload analyzer log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: analyzer-log-${{ github.run_number }}
-          path: analyzer.log
+          path: |
+            analyzer.log
+            clustering.log
           retention-days: 7
           if-no-files-found: ignore
 
@@ -187,15 +242,16 @@ jobs:
       - name: Job summary
         if: always()
         run: |
-          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          cat >> $GITHUB_STEP_SUMMARY << EOF
           ## SDK Diff Analyzer Results
 
           | Parameter | Value |
           |-----------|-------|
           | Mode | ${{ steps.range.outputs.mode }} |
-          | Since | `${{ steps.range.outputs.since || 'N/A' }}` |
-          | gdc-nas HEAD | `${{ steps.gdc_nas.outputs.head_sha }}` |
+          | Since | \`${{ steps.range.outputs.since || 'N/A' }}\` |
+          | gdc-nas HEAD | \`${{ steps.gdc_nas.outputs.head_sha }}\` |
           | SDK-relevant commits | ${{ steps.analyze.outputs.sdk_reports }} |
+          | Clusters created | ${{ steps.cluster.outputs.clusters_created || '0' }} |
 
           EOF
 
@@ -203,4 +259,11 @@ jobs:
             echo "### Report Summary" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             cat reports/00-summary.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f clustered/00-clusters.md ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Clustering Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            cat clustered/00-clusters.md >> $GITHUB_STEP_SUMMARY
           fi

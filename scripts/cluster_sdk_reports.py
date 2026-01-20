@@ -335,138 +335,401 @@ def heuristic_cluster(reports: list[ReportMetadata]) -> list[Cluster]:
     return clusters
 
 
-def claude_enhance_clusters(clusters: list[Cluster], api_key: str) -> list[Cluster]:
+def claude_review_clusters(
+    clusters: list[Cluster],
+    reports_dir: Path,
+    api_key: str,
+) -> tuple[list[Cluster], str]:
     """
-    Use Claude API to enhance clustering with semantic analysis.
+    Use Claude to critically review the proposed clustering.
 
-    This can:
-    1. Merge clusters that are semantically related
-    2. Split clusters that were incorrectly grouped
-    3. Generate better descriptions and action items
+    Claude acts as a devil's advocate:
+    1. Reads FULL report content (not just metadata)
+    2. Questions whether groupings make semantic sense
+    3. Identifies false positives (unrelated commits grouped together)
+    4. Identifies false negatives (related commits in separate clusters)
+    5. Provides reasoning for each recommendation
+
+    Returns:
+        tuple: (revised_clusters, review_report_markdown)
     """
     try:
         import anthropic
     except ImportError:
-        print("Warning: anthropic package not installed, skipping Claude enhancement")
-        return clusters
+        print("Warning: anthropic package not installed, skipping Claude review")
+        return clusters, ""
 
     client = anthropic.Anthropic(api_key=api_key)
 
-    # Prepare cluster summaries for Claude
-    cluster_summaries = []
+    # Read full report content for each report
+    report_contents = {}
+    for cluster in clusters:
+        for report in cluster.reports:
+            report_path = reports_dir / report.filename
+            if report_path.exists():
+                content = report_path.read_text()
+                # Truncate very long reports to avoid token limits
+                if len(content) > 8000:
+                    content = content[:8000] + "\n\n[... truncated for length ...]"
+                report_contents[report.filename] = content
+
+    # Build the clustering proposal for Claude to review
+    clustering_proposal = []
     for c in clusters:
-        summary = {
+        cluster_info = {
             "cluster_id": c.cluster_id,
             "name": c.name,
-            "report_count": len(c.reports),
-            "commits": [{"sha": r.commit_sha, "message": r.message, "jira": r.jira_tickets} for r in c.reports],
-            "services": list(set(s for r in c.reports for s in r.services)),
-            "change_types": list(set(t for r in c.reports for t in r.change_categories)),
-            "current_rationale": c.merge_rationale,
+            "heuristic_rationale": c.merge_rationale,
+            "reports": [],
         }
-        cluster_summaries.append(summary)
+        for r in c.reports:
+            cluster_info["reports"].append(
+                {
+                    "filename": r.filename,
+                    "commit_sha": r.commit_sha,
+                    "message": r.message,
+                    "jira_tickets": r.jira_tickets,
+                    "services": r.services,
+                    "change_categories": r.change_categories,
+                    "impact_level": r.impact_level,
+                }
+            )
+        clustering_proposal.append(cluster_info)
 
-    prompt = f"""Analyze these SDK change report clusters and suggest improvements.
+    # Build the full reports section
+    reports_section = ""
+    for filename, content in report_contents.items():
+        reports_section += f"\n\n{'=' * 60}\nREPORT: {filename}\n{'=' * 60}\n{content}"
 
-Current clusters:
-{json.dumps(cluster_summaries, indent=2)}
+    prompt = f"""You are a critical code reviewer analyzing SDK change report clustering.
 
-Your task:
-1. Identify clusters that should be MERGED because they represent the same logical change
-2. Identify clusters that should be SPLIT because they group unrelated changes
-3. For each final cluster, provide:
-   - A clear, actionable name (max 50 chars)
-   - A description of what SDK changes are needed
-   - Priority (1=critical API changes, 2=important, 3=routine)
-   - Specific action items for the SDK team
+## Your Role
+Act as a DEVIL'S ADVOCATE. Your job is to find problems with the proposed clustering:
+- Are commits grouped together that shouldn't be?
+- Are commits separated that should be together?
+- Does the clustering actually help, or does it obscure important differences?
+
+## Context
+These reports describe changes in gdc-nas (backend) that may require updates to gooddata-python-sdk.
+The goal is to group related changes so an agent can process them in a single run instead of separately.
+
+## Proposed Clustering (by heuristics)
+{json.dumps(clustering_proposal, indent=2)}
+
+## Full Report Contents
+{reports_section}
+
+## Your Task
+
+1. **Review each cluster critically:**
+   - Read the ACTUAL report content, not just metadata
+   - Ask: "Do these commits REALLY belong together?"
+   - Look for semantic differences that heuristics missed
+   - Consider: Would processing these together help or hurt?
+
+2. **Identify problems:**
+   - FALSE POSITIVES: Commits grouped together but actually unrelated
+     (e.g., same service but completely different features)
+   - FALSE NEGATIVES: Commits in different clusters but actually related
+     (e.g., different services but same feature/JIRA epic)
+   - OVER-CLUSTERING: Too many commits in one cluster, losing important nuance
+   - UNDER-CLUSTERING: Singletons that could be merged
+
+3. **Make recommendations:**
+   - APPROVE: Cluster is good as-is
+   - SPLIT: Break cluster into smaller groups (explain why)
+   - MERGE: Combine clusters (explain the connection)
+   - REASSIGN: Move specific report(s) to different cluster
 
 Respond in JSON format:
 {{
-  "analysis": "Brief analysis of the clustering",
-  "recommendations": [
+  "overall_assessment": "Brief summary of clustering quality (good/needs-work/poor)",
+  "concerns": ["List of main concerns about the current clustering"],
+  "cluster_reviews": [
     {{
-      "action": "merge|split|keep",
-      "cluster_ids": ["id1", "id2"],  // for merge: clusters to combine; for split: cluster to split; for keep: single cluster
-      "new_name": "Clear action-oriented name",
-      "new_description": "What needs to be done",
-      "priority": 1,
-      "action_items": ["Specific step 1", "Specific step 2"]
+      "cluster_id": "id",
+      "verdict": "APPROVE|SPLIT|MERGE|REASSIGN",
+      "confidence": "high|medium|low",
+      "reasoning": "Detailed explanation of your assessment",
+      "issues_found": ["Specific problems identified"],
+      "recommendation": {{
+        "action": "keep|split|merge|reassign",
+        "details": "What exactly should change",
+        "new_groups": [  // Only for split/reassign
+          {{
+            "name": "New cluster name",
+            "reports": ["filename1.md", "filename2.md"],
+            "rationale": "Why these belong together"
+          }}
+        ],
+        "merge_with": "other_cluster_id",  // Only for merge
+        "priority": 1
+      }}
     }}
+  ],
+  "missed_connections": [  // Reports that should be grouped but aren't
+    {{
+      "reports": ["file1.md", "file2.md"],
+      "connection": "Why these are related",
+      "suggested_cluster_name": "Name for new cluster"
+    }}
+  ],
+  "final_recommendations": [
+    "Actionable recommendation 1",
+    "Actionable recommendation 2"
   ]
 }}"""
 
     try:
+        print("  Sending reports to Claude for critical review...")
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=4096,
+            max_tokens=8192,
             messages=[{"role": "user", "content": prompt}],
         )
 
-        # Parse response
         response_text = response.content[0].text
 
         # Extract JSON from response
         json_match = re.search(r"\{[\s\S]+\}", response_text)
         if not json_match:
-            print("Warning: Could not parse Claude response, keeping original clusters")
-            return clusters
+            print("  Warning: Could not parse Claude response")
+            return clusters, f"## Claude Review\n\nFailed to parse response:\n```\n{response_text[:1000]}\n```"
 
-        recommendations = json.loads(json_match.group())
+        review = json.loads(json_match.group())
 
-        print(f"Claude analysis: {recommendations.get('analysis', 'N/A')}")
+        # Generate review report markdown
+        review_md = generate_review_report(review)
+
+        print(f"  Assessment: {review.get('overall_assessment', 'N/A')}")
+        if review.get("concerns"):
+            print(f"  Concerns: {len(review['concerns'])} identified")
 
         # Apply recommendations
-        cluster_map = {c.cluster_id: c for c in clusters}
-        enhanced_clusters = []
-        processed_ids = set()
+        revised_clusters = apply_claude_recommendations(clusters, review, reports_dir)
 
-        for rec in recommendations.get("recommendations", []):
-            action = rec.get("action", "keep")
-            cluster_ids = rec.get("cluster_ids", [])
+        return revised_clusters, review_md
 
-            if action == "merge" and len(cluster_ids) > 1:
-                # Merge multiple clusters
-                merged_reports = []
-                for cid in cluster_ids:
-                    if cid in cluster_map:
-                        merged_reports.extend(cluster_map[cid].reports)
-                        processed_ids.add(cid)
+    except Exception as e:
+        print(f"  Warning: Claude API error: {e}")
+        return clusters, f"## Claude Review\n\nAPI Error: {e}"
 
-                if merged_reports:
-                    enhanced_clusters.append(
+
+def generate_review_report(review: dict) -> str:
+    """Generate a markdown report from Claude's review."""
+    lines = [
+        "# Claude Clustering Review",
+        "",
+        f"**Overall Assessment:** {review.get('overall_assessment', 'N/A')}",
+        "",
+    ]
+
+    # Concerns
+    concerns = review.get("concerns", [])
+    if concerns:
+        lines.append("## Concerns Identified")
+        lines.append("")
+        for concern in concerns:
+            lines.append(f"- ⚠️ {concern}")
+        lines.append("")
+
+    # Cluster reviews
+    cluster_reviews = review.get("cluster_reviews", [])
+    if cluster_reviews:
+        lines.append("## Cluster-by-Cluster Review")
+        lines.append("")
+        for cr in cluster_reviews:
+            verdict = cr.get("verdict", "UNKNOWN")
+            verdict_icon = {"APPROVE": "✅", "SPLIT": "✂️", "MERGE": "🔗", "REASSIGN": "↔️"}.get(verdict, "❓")
+            confidence = cr.get("confidence", "unknown")
+
+            lines.append(f"### {verdict_icon} `{cr.get('cluster_id', 'unknown')}`")
+            lines.append("")
+            lines.append(f"**Verdict:** {verdict} (confidence: {confidence})")
+            lines.append("")
+            lines.append(f"**Reasoning:** {cr.get('reasoning', 'N/A')}")
+            lines.append("")
+
+            issues = cr.get("issues_found", [])
+            if issues:
+                lines.append("**Issues:**")
+                for issue in issues:
+                    lines.append(f"- {issue}")
+                lines.append("")
+
+            rec = cr.get("recommendation", {})
+            if rec.get("details"):
+                lines.append(f"**Recommendation:** {rec['details']}")
+                lines.append("")
+
+    # Missed connections
+    missed = review.get("missed_connections", [])
+    if missed:
+        lines.append("## Missed Connections")
+        lines.append("")
+        lines.append("Reports that should potentially be grouped together:")
+        lines.append("")
+        for m in missed:
+            lines.append(f"- **{m.get('suggested_cluster_name', 'Unknown')}**")
+            lines.append(f"  - Reports: {', '.join(m.get('reports', []))}")
+            lines.append(f"  - Connection: {m.get('connection', 'N/A')}")
+        lines.append("")
+
+    # Final recommendations
+    final_recs = review.get("final_recommendations", [])
+    if final_recs:
+        lines.append("## Final Recommendations")
+        lines.append("")
+        for i, rec in enumerate(final_recs, 1):
+            lines.append(f"{i}. {rec}")
+        lines.append("")
+
+    lines.append("---")
+    lines.append("*Review generated by Claude*")
+
+    return "\n".join(lines)
+
+
+def apply_claude_recommendations(
+    clusters: list[Cluster],
+    review: dict,
+    reports_dir: Path,
+) -> list[Cluster]:
+    """Apply Claude's recommendations to revise the clustering."""
+    cluster_map = {c.cluster_id: c for c in clusters}
+    report_map = {}
+    for c in clusters:
+        for r in c.reports:
+            report_map[r.filename] = r
+
+    revised_clusters = []
+    processed_cluster_ids = set()
+    processed_report_files = set()
+
+    # Process cluster reviews
+    for cr in review.get("cluster_reviews", []):
+        cluster_id = cr.get("cluster_id")
+        if cluster_id not in cluster_map:
+            continue
+
+        verdict = cr.get("verdict", "APPROVE")
+        rec = cr.get("recommendation", {})
+        original_cluster = cluster_map[cluster_id]
+
+        if verdict == "APPROVE" or rec.get("action") == "keep":
+            # Keep cluster as-is, maybe update priority
+            if rec.get("priority"):
+                original_cluster.priority = rec["priority"]
+            revised_clusters.append(original_cluster)
+            processed_cluster_ids.add(cluster_id)
+            for r in original_cluster.reports:
+                processed_report_files.add(r.filename)
+
+        elif verdict == "SPLIT" and rec.get("new_groups"):
+            # Split into new groups
+            processed_cluster_ids.add(cluster_id)
+            for i, new_group in enumerate(rec["new_groups"]):
+                group_reports = []
+                for fname in new_group.get("reports", []):
+                    if fname in report_map:
+                        group_reports.append(report_map[fname])
+                        processed_report_files.add(fname)
+
+                if group_reports:
+                    revised_clusters.append(
                         Cluster(
-                            cluster_id=f"merged-{'-'.join(cluster_ids[:2])}",
-                            name=rec.get("new_name", "Merged Changes"),
-                            description=rec.get("new_description", ""),
-                            reports=merged_reports,
-                            merge_rationale="Claude identified these as semantically related changes",
-                            suggested_action="\n".join(rec.get("action_items", [])),
-                            priority=rec.get("priority", 2),
+                            cluster_id=f"claude-split-{cluster_id}-{i}",
+                            name=new_group.get("name", f"Split from {cluster_id}"),
+                            description=new_group.get("rationale", ""),
+                            reports=group_reports,
+                            merge_rationale=f"Claude split from {cluster_id}: {new_group.get('rationale', '')}",
+                            suggested_action=original_cluster.suggested_action,
+                            priority=rec.get("priority", original_cluster.priority),
                         )
                     )
 
-            elif action == "keep" and cluster_ids:
-                cid = cluster_ids[0]
-                if cid in cluster_map:
-                    c = cluster_map[cid]
-                    c.name = rec.get("new_name", c.name)
-                    c.description = rec.get("new_description", c.description)
-                    c.priority = rec.get("priority", c.priority)
-                    if rec.get("action_items"):
-                        c.suggested_action = "\n".join(rec["action_items"])
-                    enhanced_clusters.append(c)
-                    processed_ids.add(cid)
+        elif verdict == "MERGE" and rec.get("merge_with"):
+            # Will be handled when processing the target cluster
+            pass
 
-        # Add any clusters that weren't processed
-        for c in clusters:
-            if c.cluster_id not in processed_ids:
-                enhanced_clusters.append(c)
+    # Handle merges
+    for cr in review.get("cluster_reviews", []):
+        if cr.get("verdict") == "MERGE":
+            cluster_id = cr.get("cluster_id")
+            merge_with = cr.get("recommendation", {}).get("merge_with")
 
-        return enhanced_clusters
+            if cluster_id in processed_cluster_ids or merge_with in processed_cluster_ids:
+                continue
 
-    except Exception as e:
-        print(f"Warning: Claude API error: {e}")
-        return clusters
+            if cluster_id in cluster_map and merge_with in cluster_map:
+                c1 = cluster_map[cluster_id]
+                c2 = cluster_map[merge_with]
+                merged_reports = c1.reports + c2.reports
+
+                revised_clusters.append(
+                    Cluster(
+                        cluster_id=f"claude-merged-{cluster_id}",
+                        name=cr.get("recommendation", {}).get("details", f"Merged: {c1.name} + {c2.name}")[:50],
+                        description=cr.get("reasoning", ""),
+                        reports=merged_reports,
+                        merge_rationale=f"Claude merged {cluster_id} with {merge_with}: {cr.get('reasoning', '')}",
+                        suggested_action=c1.suggested_action,
+                        priority=cr.get("recommendation", {}).get("priority", min(c1.priority, c2.priority)),
+                    )
+                )
+                processed_cluster_ids.add(cluster_id)
+                processed_cluster_ids.add(merge_with)
+                for r in merged_reports:
+                    processed_report_files.add(r.filename)
+
+    # Handle missed connections (create new clusters)
+    for missed in review.get("missed_connections", []):
+        reports_to_group = []
+        for fname in missed.get("reports", []):
+            if fname in report_map and fname not in processed_report_files:
+                reports_to_group.append(report_map[fname])
+                processed_report_files.add(fname)
+
+        if len(reports_to_group) > 1:
+            revised_clusters.append(
+                Cluster(
+                    cluster_id=f"claude-new-{len(revised_clusters)}",
+                    name=missed.get("suggested_cluster_name", "Claude-identified group"),
+                    description=missed.get("connection", ""),
+                    reports=reports_to_group,
+                    merge_rationale=f"Claude identified connection: {missed.get('connection', '')}",
+                    suggested_action="Review these related changes together",
+                    priority=2,
+                )
+            )
+
+    # Add any unprocessed clusters
+    for c in clusters:
+        if c.cluster_id not in processed_cluster_ids:
+            # Check if any of its reports are already processed
+            remaining_reports = [r for r in c.reports if r.filename not in processed_report_files]
+            if remaining_reports:
+                c.reports = remaining_reports
+                revised_clusters.append(c)
+                for r in remaining_reports:
+                    processed_report_files.add(r.filename)
+
+    # Add any completely unprocessed reports as singletons
+    for fname, report in report_map.items():
+        if fname not in processed_report_files:
+            revised_clusters.append(
+                Cluster(
+                    cluster_id=f"single-{report.commit_sha}",
+                    name=f"Commit {report.commit_sha}",
+                    description=report.message[:100],
+                    reports=[report],
+                    merge_rationale="Standalone commit",
+                    suggested_action="Review individually",
+                    priority=5,
+                )
+            )
+
+    return revised_clusters
 
 
 def generate_merged_report(cluster: Cluster, original_reports_dir: Path) -> str:
@@ -675,15 +938,16 @@ def main():
     clusters = heuristic_cluster(reports)
     print(f"  Created {len(clusters)} initial clusters")
 
-    # Optionally enhance with Claude
+    # Optionally have Claude review the clustering
+    claude_review_md = ""
     if args.use_claude:
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if api_key:
-            print("\nEnhancing clusters with Claude...")
-            clusters = claude_enhance_clusters(clusters, api_key)
-            print(f"  Final cluster count: {len(clusters)}")
+            print("\nHaving Claude critically review the clustering...")
+            clusters, claude_review_md = claude_review_clusters(clusters, input_dir, api_key)
+            print(f"  Revised cluster count: {len(clusters)}")
         else:
-            print("\nWarning: --use-claude specified but ANTHROPIC_API_KEY not set, skipping enhancement")
+            print("\nWarning: --use-claude specified but ANTHROPIC_API_KEY not set, skipping review")
 
     # Filter out small clusters (make them singletons)
     final_clusters = []
@@ -735,11 +999,18 @@ def main():
         "total_reports": len(reports),
         "total_clusters": len(final_clusters),
         "multi_report_clusters": len(multi_report_clusters),
+        "claude_reviewed": bool(claude_review_md),
         "clusters": [c.to_dict() for c in sorted(final_clusters, key=lambda x: (x.priority, x.cluster_id))],
     }
     manifest_file = output_dir / "clusters.json"
     manifest_file.write_text(json.dumps(manifest, indent=2))
     print(f"  Generated: {manifest_file.name}")
+
+    # Write Claude review report if available
+    if claude_review_md:
+        review_file = output_dir / "01-claude-review.md"
+        review_file.write_text(claude_review_md)
+        print(f"  Generated: {review_file.name}")
 
     # Print summary
     print("\n" + "=" * 60)

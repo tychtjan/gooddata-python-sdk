@@ -191,6 +191,32 @@ jobs:
             cat clustered/00-clusters.md
           fi
 
+      - name: Sync report state
+        id: state
+        if: steps.analyze.outputs.sdk_reports > 0
+        run: |
+          echo "=== Syncing Report State ==="
+
+          # Sync state with new reports and clusters
+          SYNC_ARGS="--reports-dir ./reports"
+          if [ -d "./clustered" ]; then
+            SYNC_ARGS="$SYNC_ARGS --clusters-dir ./clustered"
+          fi
+
+          python3 scripts/sdk_report_state.py sync $SYNC_ARGS
+
+          # Show what needs attention
+          echo ""
+          python3 scripts/sdk_report_state.py needs-attention
+
+          # Output counts for summary
+          SUMMARY=$(python3 scripts/sdk_report_state.py summary 2>&1)
+          NEW_REPORTS=$(echo "$SUMMARY" | grep -A10 "REPORTS:" | grep "new" | awk '{print $NF}' || echo "0")
+          NEW_CLUSTERS=$(echo "$SUMMARY" | grep -A10 "CLUSTERS:" | grep "new" | awk '{print $NF}' || echo "0")
+
+          echo "new_reports=$NEW_REPORTS" >> $GITHUB_OUTPUT
+          echo "new_clusters=$NEW_CLUSTERS" >> $GITHUB_OUTPUT
+
       - name: Upload analysis reports
         uses: actions/upload-artifact@v4
         with:
@@ -217,26 +243,33 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Update state file
+      - name: Update state files
         run: |
           echo "=== Updating state ==="
           HEAD_SHA="${{ steps.gdc_nas.outputs.head_sha }}"
 
+          # Update gdc-nas commit state
           echo "$HEAD_SHA" > "${{ env.STATE_FILE }}"
-          echo "Stored SHA: $HEAD_SHA"
+          echo "Stored gdc-nas SHA: $HEAD_SHA"
 
-          # Commit and push state file
+          # Commit and push state files
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Add both state files
           git add "${{ env.STATE_FILE }}"
+          git add ".github/sdk-report-state.json" 2>/dev/null || true
 
           if git diff --staged --quiet; then
-            echo "No changes to state file"
+            echo "No changes to state files"
           else
-            git commit -m "chore: update gdc-nas analyzer state to ${HEAD_SHA:0:12}"
+            git commit -m "chore: update analyzer state to ${HEAD_SHA:0:12}
+
+            gdc-nas HEAD: ${HEAD_SHA}
+            New reports: ${{ steps.state.outputs.new_reports || '0' }}
+            New clusters: ${{ steps.state.outputs.new_clusters || '0' }}"
             git push
-            echo "State file updated and pushed"
+            echo "State files updated and pushed"
           fi
 
       - name: Job summary
@@ -252,10 +285,23 @@ jobs:
           | gdc-nas HEAD | \`${{ steps.gdc_nas.outputs.head_sha }}\` |
           | SDK-relevant commits | ${{ steps.analyze.outputs.sdk_reports }} |
           | Clusters created | ${{ steps.cluster.outputs.clusters_created || '0' }} |
+          | **New reports** | **${{ steps.state.outputs.new_reports || '0' }}** |
+          | **New clusters** | **${{ steps.state.outputs.new_clusters || '0' }}** |
 
           EOF
 
+          # Show items needing attention
+          if [ -f ".github/sdk-report-state.json" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔔 Items Needing Attention" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            python3 scripts/sdk_report_state.py needs-attention 2>&1 >> $GITHUB_STEP_SUMMARY || echo "State check failed"
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
           if [ -f reports/00-summary.md ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Report Summary" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             cat reports/00-summary.md >> $GITHUB_STEP_SUMMARY

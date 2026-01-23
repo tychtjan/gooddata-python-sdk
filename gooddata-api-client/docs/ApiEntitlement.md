@@ -1,5 +1,6 @@
 # ApiEntitlement
 
+Defines entitlements for given organization.
 
 ## Properties
 Name | Type | Description | Notes

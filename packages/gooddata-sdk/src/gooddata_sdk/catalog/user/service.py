@@ -15,6 +15,7 @@ from gooddata_sdk.catalog.user.declarative_model.user_group import CatalogDeclar
 from gooddata_sdk.catalog.user.entity_model.api_token import CatalogApiToken
 from gooddata_sdk.catalog.user.entity_model.user import CatalogUser, CatalogUserDocument
 from gooddata_sdk.catalog.user.entity_model.user_group import CatalogUserGroup, CatalogUserGroupDocument
+from gooddata_sdk.catalog.user.entity_model.user_setting import CatalogUserSetting
 from gooddata_sdk.catalog.user.management_model.management import (
     CatalogPermissionAssignments,
     CatalogPermissionsAssignment,
@@ -450,6 +451,79 @@ class CatalogUserService(CatalogServiceBase):
             None
         """
         self._user_management_api.revoke_permissions(permissions_assignment.to_api())
+
+    # Entity methods for user settings
+
+    def create_or_update_user_setting(self, user_id: str, user_setting: CatalogUserSetting) -> None:
+        """Create a new user setting or overwrite an existing user setting with the same id.
+
+        Args:
+            user_id (str):
+                ID of user for which to create or update the setting.
+            user_setting (CatalogUserSetting):
+                User Setting object to be created or updated.
+
+        Returns:
+            None
+        """
+        try:
+            self.get_user_setting(user_id, user_setting.id)
+            self._entities_api.update_entity_user_settings(user_id, user_setting.id, user_setting.to_api())
+        except NotFoundException:
+            self._entities_api.create_entity_user_settings(user_id, user_setting.to_api())
+
+    def get_user_setting(self, user_id: str, user_setting_id: str) -> CatalogUserSetting:
+        """Get a user setting by its ID.
+
+        Args:
+            user_id (str):
+                ID of the user.
+            user_setting_id (str):
+                ID of the user setting.
+
+        Returns:
+            CatalogUserSetting:
+                User setting object.
+        """
+        return CatalogUserSetting.from_api(
+            self._entities_api.get_entity_user_settings(user_id, user_setting_id).data
+        )
+
+    def delete_user_setting(self, user_id: str, user_setting_id: str) -> None:
+        """Delete a user setting.
+
+        Args:
+            user_id (str):
+                ID of the user.
+            user_setting_id (str):
+                ID of the user setting to delete.
+
+        Returns:
+            None
+        """
+        try:
+            self._entities_api.delete_entity_user_settings(user_id, user_setting_id)
+        except NotFoundException:
+            pass
+
+    def list_user_settings(self, user_id: str) -> list[CatalogUserSetting]:
+        """List all settings for a user.
+
+        Args:
+            user_id (str):
+                ID of the user.
+
+        Returns:
+            list[CatalogUserSetting]:
+                List of user setting objects.
+        """
+        get_user_settings = functools.partial(
+            self._entities_api.get_all_entities_user_settings,
+            user_id,
+            _check_return_type=False,
+        )
+        user_settings = load_all_entities(get_user_settings).data
+        return [CatalogUserSetting.from_api(us) for us in user_settings]
 
     def list_user_api_tokens(self, user_id: str) -> list[CatalogApiToken]:
         get_api_tokens = functools.partial(

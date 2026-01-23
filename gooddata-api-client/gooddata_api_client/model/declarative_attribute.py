@@ -137,6 +137,8 @@ class DeclarativeAttribute(ModelNormal):
             'sort_direction': (str,),  # noqa: E501
             'source_column_data_type': (str,),  # noqa: E501
             'tags': ([str],),  # noqa: E501
+            'is_nullable': (bool,),  # noqa: E501
+            'null_value': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -157,6 +159,8 @@ class DeclarativeAttribute(ModelNormal):
         'sort_direction': 'sortDirection',  # noqa: E501
         'source_column_data_type': 'sourceColumnDataType',  # noqa: E501
         'tags': 'tags',  # noqa: E501
+        'is_nullable': 'isNullable',  # noqa: E501
+        'null_value': 'nullValue',  # noqa: E501
     }
 
     read_only_vars = {

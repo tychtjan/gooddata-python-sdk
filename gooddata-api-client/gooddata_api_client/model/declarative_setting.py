@@ -102,6 +102,7 @@ class DeclarativeSetting(ModelNormal):
             'SORT_CASE_SENSITIVE': "SORT_CASE_SENSITIVE",
             'METRIC_FORMAT_OVERRIDE': "METRIC_FORMAT_OVERRIDE",
             'ENABLE_AI_ON_DATA': "ENABLE_AI_ON_DATA",
+            'ENABLE_NULL_JOINS': "ENABLE_NULL_JOINS",
         },
     }
 

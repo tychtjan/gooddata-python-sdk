@@ -70,7 +70,7 @@ class CatalogUserService(CatalogServiceBase):
         Returns:
             None
         """
-        self._entities_api.delete_entity_users(id=user_id)
+        self._entities_api.delete_entity_users(id=user_id, _check_return_type=False)
 
     def list_users(self) -> list[CatalogUser]:
         """Get a list of all existing users.
@@ -138,7 +138,7 @@ class CatalogUserService(CatalogServiceBase):
         Returns:
             None
         """
-        self._entities_api.delete_entity_user_groups(id=user_group_id)
+        self._entities_api.delete_entity_user_groups(id=user_group_id, _check_return_type=False)
 
     def list_user_groups(self) -> list[CatalogUserGroup]:
         """Get a list of all existing user groups.
@@ -472,4 +472,4 @@ class CatalogUserService(CatalogServiceBase):
         return CatalogApiToken(id=v["id"])
 
     def delete_user_api_token(self, user_id: str, api_token_id: str) -> None:
-        self._entities_api.delete_entity_api_tokens(user_id, api_token_id)
+        self._entities_api.delete_entity_api_tokens(user_id, api_token_id, _check_return_type=False)

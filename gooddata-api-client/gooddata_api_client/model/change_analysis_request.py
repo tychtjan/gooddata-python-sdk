@@ -99,6 +99,8 @@ class ChangeAnalysisRequest(ModelNormal):
             'attributes': ([AttributeItem],),  # noqa: E501
             'aux_measures': ([MeasureItem],),  # noqa: E501
             'filters': ([ChangeAnalysisParamsFiltersInner],),  # noqa: E501
+            'include_tags': ([str],),  # noqa: E501
+            'exclude_tags': ([str],),  # noqa: E501
             'use_smart_attribute_selection': (bool,),  # noqa: E501
         }
 
@@ -115,6 +117,8 @@ class ChangeAnalysisRequest(ModelNormal):
         'attributes': 'attributes',  # noqa: E501
         'aux_measures': 'auxMeasures',  # noqa: E501
         'filters': 'filters',  # noqa: E501
+        'include_tags': 'includeTags',  # noqa: E501
+        'exclude_tags': 'excludeTags',  # noqa: E501
         'use_smart_attribute_selection': 'useSmartAttributeSelection',  # noqa: E501
     }
 
@@ -168,6 +172,8 @@ class ChangeAnalysisRequest(ModelNormal):
             attributes ([AttributeItem]): Attributes to analyze for significant changes. If empty, valid attributes will be automatically discovered.. [optional]  # noqa: E501
             aux_measures ([MeasureItem]): Auxiliary measures. [optional]  # noqa: E501
             filters ([ChangeAnalysisParamsFiltersInner]): Optional filters to apply.. [optional]  # noqa: E501
+            include_tags ([str]): Tags to include in the analysis. Only attributes and measures with these tags will be considered.. [optional]  # noqa: E501
+            exclude_tags ([str]): Tags to exclude from the analysis. Attributes and measures with these tags will be filtered out.. [optional]  # noqa: E501
             use_smart_attribute_selection (bool): Whether to use smart attribute selection (LLM-based) instead of discovering all valid attributes. If true, GenAI will intelligently select the most relevant attributes for change analysis. If false or not set, all valid attributes will be discovered using Calcique. Smart attribute selection applies only when no attributes are provided.. [optional] if omitted the server will use the default value of False  # noqa: E501
         """
 
@@ -267,6 +273,8 @@ class ChangeAnalysisRequest(ModelNormal):
             attributes ([AttributeItem]): Attributes to analyze for significant changes. If empty, valid attributes will be automatically discovered.. [optional]  # noqa: E501
             aux_measures ([MeasureItem]): Auxiliary measures. [optional]  # noqa: E501
             filters ([ChangeAnalysisParamsFiltersInner]): Optional filters to apply.. [optional]  # noqa: E501
+            include_tags ([str]): Tags to include in the analysis. Only attributes and measures with these tags will be considered.. [optional]  # noqa: E501
+            exclude_tags ([str]): Tags to exclude from the analysis. Attributes and measures with these tags will be filtered out.. [optional]  # noqa: E501
             use_smart_attribute_selection (bool): Whether to use smart attribute selection (LLM-based) instead of discovering all valid attributes. If true, GenAI will intelligently select the most relevant attributes for change analysis. If false or not set, all valid attributes will be discovered using Calcique. Smart attribute selection applies only when no attributes are provided.. [optional] if omitted the server will use the default value of False  # noqa: E501
         """
 

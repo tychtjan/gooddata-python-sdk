@@ -153,6 +153,11 @@ from gooddata_sdk.catalog.user.declarative_model.user_group import (
 )
 from gooddata_sdk.catalog.user.entity_model.user import CatalogUser
 from gooddata_sdk.catalog.user.entity_model.user_group import CatalogUserGroup
+from gooddata_sdk.catalog.user.entity_model.user_setting import (
+    CatalogUserSetting,
+    CatalogUserSettingAttributes,
+    CatalogUserSettingDocument,
+)
 from gooddata_sdk.catalog.user.management_model.management import (
     CatalogDataSourcePermissionAssignment,
     CatalogPermissionAssignments,

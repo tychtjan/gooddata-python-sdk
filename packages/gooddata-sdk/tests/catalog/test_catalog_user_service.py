@@ -35,6 +35,7 @@ from gooddata_sdk import (
     CatalogPermissionsAssignment,
     CatalogUser,
     CatalogUserGroup,
+    CatalogUserSetting,
     GoodDataApiClient,
     GoodDataSdk,
 )
@@ -915,3 +916,106 @@ def _verify_demo2_permissions_state(sdk: GoodDataSdk, test_config: dict) -> bool
         return group_perms.data_sources[0].permissions == ["USE"]
     except Exception:
         return False
+
+
+# USER SETTINGS TESTS
+
+
+def test_user_setting_access_restrictions():
+    """Test that restricted settings cannot be set at user level."""
+    # Test restricted setting by ID
+    with pytest.raises(ValueError, match="Setting 'nullJoins'.*restricted to workspace/organization level"):
+        CatalogUserSetting.init(
+            setting_id="nullJoins",
+            setting_type="BOOLEAN",
+            content={"value": True}
+        )
+    
+    # Test restricted setting by type
+    with pytest.raises(ValueError, match="Setting 'someId'.*restricted to workspace/organization level"):
+        CatalogUserSetting.init(
+            setting_id="someId", 
+            setting_type="nullJoins",
+            content={"value": True}
+        )
+
+
+def test_user_setting_allowed_settings():
+    """Test that non-restricted settings can be set at user level."""
+    # Test allowed setting
+    user_setting = CatalogUserSetting.init(
+        setting_id="locale",
+        setting_type="LOCALE", 
+        content={"value": "en-US"}
+    )
+    assert user_setting.id == "locale"
+    assert user_setting.attributes.type == "LOCALE"
+    assert user_setting.attributes.content == {"value": "en-US"}
+
+
+# Note: These tests would typically use VCR cassettes, but are commented out
+# until the infrastructure is in place to record them
+
+# @gd_vcr.use_cassette(str(_fixtures_dir / "test_user_settings_crud.yaml"))
+# def test_user_settings_crud_operations(test_config):
+#     """Test CRUD operations for user settings."""
+#     sdk = GoodDataSdk.create(host_=test_config["host"], token_=test_config["token"])
+#     user_id = test_config["test_user"]
+#     setting_id = "test_locale_setting"
+#     
+#     # Create user setting
+#     user_setting = CatalogUserSetting.init(
+#         setting_id=setting_id,
+#         setting_type="LOCALE",
+#         content={"value": "en-US"}
+#     )
+#     
+#     try:
+#         # Test create
+#         sdk.catalog_user.create_or_update_user_setting(user_id, user_setting)
+#         
+#         # Test get
+#         retrieved_setting = sdk.catalog_user.get_user_setting(user_id, setting_id)
+#         assert retrieved_setting.id == setting_id
+#         assert retrieved_setting.attributes.type == "LOCALE"
+#         assert retrieved_setting.attributes.content == {"value": "en-US"}
+#         
+#         # Test list
+#         user_settings = sdk.catalog_user.list_user_settings(user_id)
+#         setting_ids = [s.id for s in user_settings]
+#         assert setting_id in setting_ids
+#         
+#         # Test update
+#         updated_setting = CatalogUserSetting.init(
+#             setting_id=setting_id,
+#             setting_type="LOCALE", 
+#             content={"value": "de-DE"}
+#         )
+#         sdk.catalog_user.create_or_update_user_setting(user_id, updated_setting)
+#         
+#         retrieved_updated_setting = sdk.catalog_user.get_user_setting(user_id, setting_id)
+#         assert retrieved_updated_setting.attributes.content == {"value": "de-DE"}
+#         
+#     finally:
+#         # Test delete
+#         try:
+#             sdk.catalog_user.delete_user_setting(user_id, setting_id)
+#         except Exception:
+#             pass  # Setting may not exist if create failed
+
+
+# @gd_vcr.use_cassette(str(_fixtures_dir / "test_user_settings_restricted_create.yaml"))
+# def test_user_settings_restricted_create(test_config):
+#     """Test that restricted settings are blocked during create operations.""" 
+#     sdk = GoodDataSdk.create(host_=test_config["host"], token_=test_config["token"])
+#     user_id = test_config["test_user"]
+#     
+#     # This should fail at the init level, but let's test the full flow 
+#     # in case someone bypasses the init validation
+#     with pytest.raises(ValueError, match="restricted to workspace/organization level"):
+#         restricted_setting = CatalogUserSetting.init(
+#             setting_id="nullJoins",
+#             setting_type="BOOLEAN",
+#             content={"value": True}  
+#         )
+#         sdk.catalog_user.create_or_update_user_setting(user_id, restricted_setting)

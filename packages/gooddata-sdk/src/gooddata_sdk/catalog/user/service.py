@@ -15,6 +15,7 @@ from gooddata_sdk.catalog.user.declarative_model.user_group import CatalogDeclar
 from gooddata_sdk.catalog.user.entity_model.api_token import CatalogApiToken
 from gooddata_sdk.catalog.user.entity_model.user import CatalogUser, CatalogUserDocument
 from gooddata_sdk.catalog.user.entity_model.user_group import CatalogUserGroup, CatalogUserGroupDocument
+from gooddata_sdk.catalog.user.entity_model.user_setting import CatalogUserSetting, CatalogUserSettingDocument
 from gooddata_sdk.catalog.user.management_model.management import (
     CatalogPermissionAssignments,
     CatalogPermissionsAssignment,
@@ -473,3 +474,82 @@ class CatalogUserService(CatalogServiceBase):
 
     def delete_user_api_token(self, user_id: str, api_token_id: str) -> None:
         self._entities_api.delete_entity_api_tokens(user_id, api_token_id)
+
+    # Entity methods for user settings
+
+    def create_or_update_user_setting(self, user_id: str, user_setting: CatalogUserSetting) -> None:
+        """Create a new user setting or overwrite an existing user setting with the same id.
+
+        Some settings are restricted to workspace/organization level only and cannot be set at user level.
+        The create operation will enforce these restrictions.
+
+        Args:
+            user_id (str):
+                User identification string. e.g. "demo.user"
+            user_setting (CatalogUserSetting):
+                User setting entity object.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: If trying to set a restricted setting at user level
+        """
+        try:
+            self.get_user_setting(user_id, user_setting.id)
+            user_setting_document = CatalogUserSettingDocument(data=user_setting)
+            self._entities_api.update_entity_user_settings(
+                user_id, user_setting.id, user_setting_document.to_api()
+            )
+        except NotFoundException:
+            user_setting_document = CatalogUserSettingDocument(data=user_setting)
+            self._entities_api.create_entity_user_settings(user_id, user_setting_document.to_api())
+
+    def get_user_setting(self, user_id: str, user_setting_id: str) -> CatalogUserSetting:
+        """Get an individual user setting using user id and user setting id.
+
+        Args:
+            user_id (str):
+                User identification string. e.g. "demo.user"
+            user_setting_id (str):
+                User Setting identification string. e.g. "locale"
+
+        Returns:
+            CatalogUserSetting:
+                User setting entity object.
+        """
+        user_setting = self._entities_api.get_entity_user_settings(user_id, user_setting_id).data
+        return CatalogUserSetting.from_api(user_setting)
+
+    def delete_user_setting(self, user_id: str, user_setting_id: str) -> None:
+        """Delete User Setting using User id and User Setting id.
+
+        Args:
+            user_id (str):
+                User identification string. e.g. "demo.user"
+            user_setting_id (str):
+                User Setting identification string. e.g. "locale"
+
+        Returns:
+            None
+        """
+        self._entities_api.delete_entity_user_settings(user_id, user_setting_id)
+
+    def list_user_settings(self, user_id: str) -> list[CatalogUserSetting]:
+        """Get a list of all existing user settings for a specific user.
+
+        Args:
+            user_id (str):
+                User identification string. e.g. "demo.user"
+
+        Returns:
+            list[CatalogUserSetting]:
+                List of all User Settings for the user as User Setting entity objects.
+        """
+        get_user_settings = functools.partial(
+            self._entities_api.get_all_entities_user_settings,
+            user_id,
+            _check_return_type=False,
+        )
+        user_settings = load_all_entities(get_user_settings)
+        return [CatalogUserSetting.from_api(us) for us in user_settings.data]

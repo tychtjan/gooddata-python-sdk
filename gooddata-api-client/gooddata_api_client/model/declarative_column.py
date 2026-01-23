@@ -109,6 +109,8 @@ class DeclarativeColumn(ModelNormal):
             'is_primary_key': (bool,),  # noqa: E501
             'referenced_table_column': (str,),  # noqa: E501
             'referenced_table_id': (str,),  # noqa: E501
+            'is_nullable': (bool,),  # noqa: E501
+            'null_value': (str,),  # noqa: E501
         }
 
     @cached_property
@@ -123,6 +125,8 @@ class DeclarativeColumn(ModelNormal):
         'is_primary_key': 'isPrimaryKey',  # noqa: E501
         'referenced_table_column': 'referencedTableColumn',  # noqa: E501
         'referenced_table_id': 'referencedTableId',  # noqa: E501
+        'is_nullable': 'isNullable',  # noqa: E501
+        'null_value': 'nullValue',  # noqa: E501
     }
 
     read_only_vars = {
@@ -174,6 +178,8 @@ class DeclarativeColumn(ModelNormal):
             is_primary_key (bool): Is column part of primary key?. [optional]  # noqa: E501
             referenced_table_column (str): Referenced table (Foreign key). [optional]  # noqa: E501
             referenced_table_id (str): Referenced table (Foreign key). [optional]  # noqa: E501
+            is_nullable (bool): Is column nullable?. [optional]  # noqa: E501
+            null_value (str): Value to use for null values. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)
@@ -269,6 +275,8 @@ class DeclarativeColumn(ModelNormal):
             is_primary_key (bool): Is column part of primary key?. [optional]  # noqa: E501
             referenced_table_column (str): Referenced table (Foreign key). [optional]  # noqa: E501
             referenced_table_id (str): Referenced table (Foreign key). [optional]  # noqa: E501
+            is_nullable (bool): Is column nullable?. [optional]  # noqa: E501
+            null_value (str): Value to use for null values. [optional]  # noqa: E501
         """
 
         _check_type = kwargs.pop('_check_type', True)

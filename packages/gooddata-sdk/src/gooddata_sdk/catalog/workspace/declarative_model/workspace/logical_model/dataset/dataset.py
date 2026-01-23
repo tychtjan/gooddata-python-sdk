@@ -79,6 +79,8 @@ class CatalogDeclarativeAttribute(Base):
     tags: Optional[list[str]] = None
     is_hidden: Optional[bool] = None
     locale: Optional[str] = None
+    is_nullable: Optional[bool] = None
+    null_value: Optional[str] = None
 
     @staticmethod
     def client_class() -> type[DeclarativeAttribute]:
@@ -94,6 +96,8 @@ class CatalogDeclarativeFact(Base):
     description: Optional[str] = None
     tags: Optional[list[str]] = None
     is_hidden: Optional[bool] = None
+    is_nullable: Optional[bool] = None
+    null_value: Optional[str] = None
 
     @staticmethod
     def client_class() -> type[DeclarativeFact]:
@@ -118,6 +122,8 @@ class CatalogDeclarativeAggregatedFact(Base):
     source_column_data_type: Optional[str] = None
     description: Optional[str] = None
     tags: Optional[list[str]] = None
+    is_nullable: Optional[bool] = None
+    null_value: Optional[str] = None
 
     @staticmethod
     def client_class() -> type[DeclarativeAggregatedFact]:
@@ -167,6 +173,8 @@ class CatalogDeclarativeLabel(Base):
     is_hidden: Optional[bool] = None
     locale: Optional[str] = None
     translations: Optional[list[CatalogDeclarativeLabelTranslation]] = None
+    is_nullable: Optional[bool] = None
+    null_value: Optional[str] = None
 
     @staticmethod
     def client_class() -> type[DeclarativeLabel]:
@@ -201,6 +209,8 @@ class CatalogDeclarativeReferenceSource(Base):
     column: str
     target: CatalogGrainIdentifier
     data_type: Optional[str] = None
+    is_nullable: Optional[bool] = None
+    null_value: Optional[str] = None
 
     @staticmethod
     def client_class() -> type[DeclarativeReferenceSource]:

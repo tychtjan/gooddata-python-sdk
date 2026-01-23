@@ -6,7 +6,7 @@
 # raise a `RecursionError`.
 # In order to avoid this, import only the API that you directly need like:
 #
-#   from gooddata_api_client.api.ai_api import AIApi
+#   from gooddata_api_client.api.api_tokens_api import APITokensApi
 #
 # or import this package, but before doing it, use:
 #
@@ -14,7 +14,6 @@
 #   sys.setrecursionlimit(n)
 
 # Import APIs into API package:
-from gooddata_api_client.api.ai_api import AIApi
 from gooddata_api_client.api.api_tokens_api import APITokensApi
 from gooddata_api_client.api.analytics_model_api import AnalyticsModelApi
 from gooddata_api_client.api.appearance_api import AppearanceApi
@@ -23,19 +22,26 @@ from gooddata_api_client.api.attributes_api import AttributesApi
 from gooddata_api_client.api.automations_api import AutomationsApi
 from gooddata_api_client.api.available_drivers_api import AvailableDriversApi
 from gooddata_api_client.api.csp_directives_api import CSPDirectivesApi
+from gooddata_api_client.api.cache_usage_api import CacheUsageApi
 from gooddata_api_client.api.computation_api import ComputationApi
-from gooddata_api_client.api.context_filters_api import ContextFiltersApi
 from gooddata_api_client.api.cookie_security_configuration_api import CookieSecurityConfigurationApi
 from gooddata_api_client.api.dashboards_api import DashboardsApi
 from gooddata_api_client.api.data_filters_api import DataFiltersApi
 from gooddata_api_client.api.data_source_declarative_apis_api import DataSourceDeclarativeAPIsApi
 from gooddata_api_client.api.data_source_entity_apis_api import DataSourceEntityAPIsApi
+from gooddata_api_client.api.data_source_files_analysis_api import DataSourceFilesAnalysisApi
+from gooddata_api_client.api.data_source_files_deletion_api import DataSourceFilesDeletionApi
+from gooddata_api_client.api.data_source_files_import_api import DataSourceFilesImportApi
+from gooddata_api_client.api.data_source_files_listing_api import DataSourceFilesListingApi
+from gooddata_api_client.api.data_source_files_manifest_read_api import DataSourceFilesManifestReadApi
+from gooddata_api_client.api.data_source_staging_location_api import DataSourceStagingLocationApi
 from gooddata_api_client.api.datasets_api import DatasetsApi
 from gooddata_api_client.api.dependency_graph_api import DependencyGraphApi
 from gooddata_api_client.api.entitlement_api import EntitlementApi
 from gooddata_api_client.api.export_definitions_api import ExportDefinitionsApi
 from gooddata_api_client.api.export_templates_api import ExportTemplatesApi
 from gooddata_api_client.api.facts_api import FactsApi
+from gooddata_api_client.api.filter_context_api import FilterContextApi
 from gooddata_api_client.api.filter_views_api import FilterViewsApi
 from gooddata_api_client.api.generate_logical_data_model_api import GenerateLogicalDataModelApi
 from gooddata_api_client.api.hierarchy_api import HierarchyApi
@@ -47,13 +53,12 @@ from gooddata_api_client.api.ldm_declarative_apis_api import LDMDeclarativeAPIsA
 from gooddata_api_client.api.llm_endpoints_api import LLMEndpointsApi
 from gooddata_api_client.api.labels_api import LabelsApi
 from gooddata_api_client.api.manage_permissions_api import ManagePermissionsApi
-from gooddata_api_client.api.metadata_sync_api import MetadataSyncApi
 from gooddata_api_client.api.metrics_api import MetricsApi
 from gooddata_api_client.api.notification_channels_api import NotificationChannelsApi
 from gooddata_api_client.api.options_api import OptionsApi
-from gooddata_api_client.api.organization_api import OrganizationApi
 from gooddata_api_client.api.organization_declarative_apis_api import OrganizationDeclarativeAPIsApi
 from gooddata_api_client.api.organization_entity_apis_api import OrganizationEntityAPIsApi
+from gooddata_api_client.api.other_api import OtherApi
 from gooddata_api_client.api.permissions_api import PermissionsApi
 from gooddata_api_client.api.plugins_api import PluginsApi
 from gooddata_api_client.api.raw_export_api import RawExportApi
@@ -67,7 +72,7 @@ from gooddata_api_client.api.translations_api import TranslationsApi
 from gooddata_api_client.api.usage_api import UsageApi
 from gooddata_api_client.api.user_groups_declarative_apis_api import UserGroupsDeclarativeAPIsApi
 from gooddata_api_client.api.user_groups_entity_apis_api import UserGroupsEntityAPIsApi
-from gooddata_api_client.api.user_data_filters_api import UserDataFiltersApi
+from gooddata_api_client.api.user_authorization_api import UserAuthorizationApi
 from gooddata_api_client.api.user_identifiers_api import UserIdentifiersApi
 from gooddata_api_client.api.user_settings_api import UserSettingsApi
 from gooddata_api_client.api.user_management_api import UserManagementApi
@@ -78,11 +83,3 @@ from gooddata_api_client.api.visualization_object_api import VisualizationObject
 from gooddata_api_client.api.workspaces_declarative_apis_api import WorkspacesDeclarativeAPIsApi
 from gooddata_api_client.api.workspaces_entity_apis_api import WorkspacesEntityAPIsApi
 from gooddata_api_client.api.workspaces_settings_api import WorkspacesSettingsApi
-from gooddata_api_client.api.actions_api import ActionsApi
-from gooddata_api_client.api.automation_organization_view_controller_api import AutomationOrganizationViewControllerApi
-from gooddata_api_client.api.entities_api import EntitiesApi
-from gooddata_api_client.api.layout_api import LayoutApi
-from gooddata_api_client.api.organization_controller_api import OrganizationControllerApi
-from gooddata_api_client.api.organization_model_controller_api import OrganizationModelControllerApi
-from gooddata_api_client.api.user_model_controller_api import UserModelControllerApi
-from gooddata_api_client.api.workspace_object_controller_api import WorkspaceObjectControllerApi

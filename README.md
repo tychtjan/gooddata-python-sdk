@@ -54,3 +54,4 @@ Check out the GoodData Foreign Data Wrapper [documentation](https://gooddata-fdw
 
 If you would like to improve, extend or fix a feature in the repository, read and follow the
 [Contributing guide](./CONTRIBUTING.md).
+# test change

@@ -38,7 +38,8 @@ jobs:
   fix-review-feedback:
     name: "Apply Review Fixes"
     if: >-
-      github.event.review.state == 'changes_requested'
+      (github.event.review.state == 'changes_requested'
+        || github.event.review.state == 'commented')
       && (github.event.pull_request.user.login == 'yenkins-admin'
           || github.event.pull_request.user.login == 'tychtjan')
       && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name

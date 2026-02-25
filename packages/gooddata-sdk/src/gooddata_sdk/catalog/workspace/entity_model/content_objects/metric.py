@@ -1,6 +1,7 @@
 # (C) 2022 GoodData Corporation
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Optional
 
 import attr
@@ -24,6 +25,14 @@ class CatalogMetric(AttrCatalogEntity):
     @property
     def is_hidden(self) -> Optional[bool]:
         return safeget(self.json_api_attributes, ["isHidden"])
+
+    @property
+    def created_at(self) -> Optional[datetime]:
+        return safeget(self.json_api_attributes, ["createdAt"])
+
+    @property
+    def modified_at(self) -> Optional[datetime]:
+        return safeget(self.json_api_attributes, ["modifiedAt"])
 
     def as_computable(self) -> Metric:
         return SimpleMetric(local_id=self.id, item=self.obj_id)

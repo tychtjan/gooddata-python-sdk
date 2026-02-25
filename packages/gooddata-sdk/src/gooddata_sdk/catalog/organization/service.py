@@ -135,7 +135,7 @@ class CatalogOrganizationService(CatalogServiceBase):
                 Jwk does not exist.
         """
         try:
-            self._entities_api.delete_entity_jwks(jwk_id)
+            self._entities_api.delete_entity_jwks(jwk_id, _check_return_type=False)
         except NotFoundException:
             raise ValueError(f"Can not delete {jwk_id} jwk. This jwk does not exist.")
 
@@ -210,7 +210,7 @@ class CatalogOrganizationService(CatalogServiceBase):
                 Organization setting does not exist.
         """
         try:
-            self._entities_api.delete_entity_organization_settings(organization_setting_id)
+            self._entities_api.delete_entity_organization_settings(organization_setting_id, _check_return_type=False)
         except NotFoundException:
             raise ValueError(
                 f"Can not delete {organization_setting_id} organization setting. "
@@ -297,7 +297,7 @@ class CatalogOrganizationService(CatalogServiceBase):
                 Csp directive does not exist.
         """
         try:
-            self._entities_api.delete_entity_csp_directives(csp_directive_id)
+            self._entities_api.delete_entity_csp_directives(csp_directive_id, _check_return_type=False)
         except NotFoundException:
             raise ValueError(f"Can not delete {csp_directive_id} csp directive. This csp directive does not exist.")
 
@@ -377,7 +377,7 @@ class CatalogOrganizationService(CatalogServiceBase):
         Returns:
             None
         """
-        self._entities_api.delete_entity_identity_providers(identity_provider_id)
+        self._entities_api.delete_entity_identity_providers(identity_provider_id, _check_return_type=False)
 
     def update_identity_provider(self, identity_provider: CatalogIdentityProvider) -> None:
         """Update an identity provider.
@@ -475,7 +475,7 @@ class CatalogOrganizationService(CatalogServiceBase):
                 Export template does not exist.
         """
         try:
-            self._entities_api.delete_entity_export_templates(export_template_id)
+            self._entities_api.delete_entity_export_templates(export_template_id, _check_return_type=False)
         except NotFoundException:
             raise ValueError(
                 f"Can not delete {export_template_id} export template. This export template does not exist."

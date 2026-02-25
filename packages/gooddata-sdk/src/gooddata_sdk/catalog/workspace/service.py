@@ -128,7 +128,7 @@ class CatalogWorkspaceService(CatalogServiceBase):
                 f"Can not delete {workspace_id} workspace. "
                 f"This workspace is parent of the following workspaces: {', '.join(children)}. "
             )
-        self._entities_api.delete_entity_workspaces(workspace_id)
+        self._entities_api.delete_entity_workspaces(workspace_id, _check_return_type=False)
 
     def list_workspaces(self) -> list[CatalogWorkspace]:
         """Returns a list of all workspaces in current organization
@@ -172,7 +172,7 @@ class CatalogWorkspaceService(CatalogServiceBase):
 
     def delete_workspace_setting(self, workspace_id: str, workspace_setting_id: str) -> None:
         try:
-            self._entities_api.delete_entity_workspace_settings(workspace_id, workspace_setting_id)
+            self._entities_api.delete_entity_workspace_settings(workspace_id, workspace_setting_id, _check_return_type=False)
         except NotFoundException:
             pass
 
@@ -1190,7 +1190,7 @@ class CatalogWorkspaceService(CatalogServiceBase):
         Returns:
             None
         """
-        self._entities_api.delete_entity_user_data_filters(workspace_id=workspace_id, object_id=user_data_filter_id)
+        self._entities_api.delete_entity_user_data_filters(workspace_id=workspace_id, object_id=user_data_filter_id, _check_return_type=False)
 
     def get_declarative_user_data_filters(self, workspace_id: str) -> CatalogDeclarativeUserDataFilters:
         """Retrieve a user data filers layout.
@@ -1392,7 +1392,7 @@ class CatalogWorkspaceService(CatalogServiceBase):
         Returns:
             None
         """
-        self._entities_api.delete_entity_filter_views(workspace_id=workspace_id, object_id=filter_view_id)
+        self._entities_api.delete_entity_filter_views(workspace_id=workspace_id, object_id=filter_view_id, _check_return_type=False)
 
     def get_declarative_filter_views(self, workspace_id: str) -> list[CatalogDeclarativeFilterView]:
         """Retrieve a list of declarative filter views.

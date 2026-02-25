@@ -93,7 +93,7 @@ class CatalogDataSourceService(CatalogServiceBase):
         Returns:
             None
         """
-        self._entities_api.delete_entity_data_sources(data_source_id)
+        self._entities_api.delete_entity_data_sources(data_source_id, _check_return_type=False)
 
     def patch_data_source_attributes(self, data_source_id: str, attributes: dict) -> None:
         """Applies changes to the specified data source.

@@ -60,6 +60,7 @@ class ProvisionDatabaseInstanceRequest(ModelNormal):
 
     validations = {
         ('storage_ids',): {
+            'min_items': 1,
         },
     }
 
